@@ -1,10 +1,11 @@
 /**
  * NPC 2D Renderer
  * Handles rendering NPC positions on the 2D top-down map view
+ * Synchronizes with game.npcs array for consistent display
  */
 class NPC2DRenderer {
     constructor() {
-        this.npcMarkers = new Map(); // Store NPC markers by NPC object
+        this.npcs = []; // Store references to NPC objects
     }
 
     /**
@@ -12,27 +13,36 @@ class NPC2DRenderer {
      * @param {NPC} npc - NPC object to track
      */
     addNPC(npc) {
-        this.npcMarkers.set(npc, {
-            x: npc.x,
-            y: npc.y,
-            color: npc.color
-        });
-    }
-
-    /**
-     * Render all NPCs on the 2D map as colored dots
-     * @param {CanvasRenderingContext2D} ctx - 2D canvas context
-     */
-    render(ctx) {
-        for (let [npc, marker] of this.npcMarkers) {
-            draw.circle(ctx, marker.x, marker.y, 5, marker.color);
+        if (!this.npcs.includes(npc)) {
+            this.npcs.push(npc);
         }
     }
 
     /**
-     * Clear all NPC markers
+     * Render all NPCs on the 2D map as colored dots
+     * Reads current position from NPC objects each frame (live data)
+     * @param {CanvasRenderingContext2D} ctx - 2D canvas context
+     */
+    render(ctx) {
+        // Only render if there are NPCs
+        if (this.npcs.length === 0) {
+            return; // No NPCs to render
+        }
+        
+        // Filter out any null/undefined NPCs (defensive programming)
+        const validNPCs = this.npcs.filter(npc => npc && typeof npc.x === 'number' && typeof npc.y === 'number');
+        
+        for (let npc of validNPCs) {
+            // Read current position from NPC (live data)
+            draw.circle(ctx, npc.x, npc.y, 5, npc.color);
+        }
+    }
+
+    /**
+     * Clear all NPC references
+     * Removes NPCs from 2D map display
      */
     clear() {
-        this.npcMarkers.clear();
+        this.npcs = [];
     }
 }

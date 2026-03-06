@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survival Park - Dev Mode</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 10px;
+            background-color: #1a1a1a;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            color: #fff;
+        }
+        
+        .dev-container {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 10px;
+            height: calc(100vh - 20px);
+        }
+        
+        .maps-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .map-view {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            background-color: #222;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .map-label {
+            font-weight: bold;
+            color: #0066cc;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        canvas {
+            border: 2px solid #444;
+            width: auto;
+            height: auto;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        #target2 {
+            background-color: #fff;
+        }
+        
+        .dev-panel {
+            background-color: #222;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-y: auto;
+        }
+        
+        .dev-section {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #2a2a2a;
+            border-radius: 5px;
+        }
+        
+        .dev-section h3 {
+            margin: 0 0 10px 0;
+            color: #0066cc;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 5px;
+        }
+        
+        .dev-button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            font-size: 14px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #0066cc;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .dev-button:hover {
+            background-color: #0052a3;
+        }
+        
+        .dev-button:active {
+            background-color: #004080;
+        }
+        
+        .dev-button.danger {
+            background-color: #cc0000;
+        }
+        
+        .dev-button.danger:hover {
+            background-color: #a30000;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        .info-item {
+            background-color: #333;
+            padding: 8px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        
+        .info-label {
+            color: #888;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+        
+        .info-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #0066cc;
+        }
+        
+        .controls-list {
+            font-size: 12px;
+            line-height: 1.6;
+            color: #aaa;
+        }
+        
+        .controls-list strong {
+            color: #fff;
+        }
+        
+        .back-button {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        
+        .back-button:hover {
+            background-color: #444;
+        }
+    </style>
+</head>
+<body>
+    <button class="back-button" onclick="window.location.href='../index.html'">← Back to Main</button>
+    
+    <div class="dev-container">
+        <div class="maps-container">
+            <div class="map-view">
+                <div class="map-label">3D Perspective View</div>
+                <canvas id="target"></canvas>
+            </div>
+            <div class="map-view">
+                <div class="map-label">2D Top-Down Map</div>
+                <canvas id="target2"></canvas>
+            </div>
+        </div>
+        
+        <div class="dev-panel">
+            <h2 style="margin-top: 0; color: #0066cc;">🛠️ Dev Mode</h2>
+            
+            <div class="dev-section">
+                <h3>NPC Spawning</h3>
+                <button class="dev-button" onclick="spawnNPC()">➕ Spawn Random NPC</button>
+                <button class="dev-button danger" onclick="clearNPCs()">🗑️ Clear All NPCs</button>
+                
+                <div class="info-grid" style="margin-top: 15px;">
+                    <div class="info-item">
+                        <div class="info-label">NPCs Active</div>
+                        <div class="info-value" id="npcCount">0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dev-section">
+                <h3>Camera Info</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Position X</div>
+                        <div class="info-value" id="camX">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Position Y</div>
+                        <div class="info-value" id="camY">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Rotation</div>
+                        <div class="info-value" id="camRot">-</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dev-section">
+                <h3>Controls</h3>
+                <div class="controls-list">
+                    <strong>Movement:</strong><br>
+                    • Arrow Up/Down - Forward/Back<br>
+                    • Arrow Left/Right - Rotate<br>
+                    <br>
+                    <strong>Weapon:</strong><br>
+                    • Left Click / Space - Fire<br>
+                    <br>
+                    <strong>Dev Mode:</strong><br>
+                    • Click spawn button to add NPCs<br>
+                    • NPCs spawn at random positions
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Debug: Log when page starts loading
+        console.log('Dev Mode page loading...');
+        
+        // Update camera info display
+        function updateCameraInfo() {
+            if (window.game && window.game.camera) {
+                document.getElementById('camX').textContent = Math.round(window.game.camera.x);
+                document.getElementById('camY').textContent = Math.round(window.game.camera.y);
+                document.getElementById('camRot').textContent = Math.round(window.game.camera.d) + '°';
+            }
+            requestAnimationFrame(updateCameraInfo);
+        }
+        
+        // Start updating when game loads
+        window.addEventListener('load', () => {
+            console.log('Page loaded, waiting for game initialization...');
+            setTimeout(() => {
+                if (window.game) {
+                    console.log('✓ Game object found:', window.game);
+                    updateCameraInfo();
+                } else {
+                    console.error('✗ Game object not found! Check script loading.');
+                }
+            }, 100);
+        });
+        
+        // Log when scripts fail to load
+        window.addEventListener('error', (e) => {
+            if (e.target.tagName === 'SCRIPT') {
+                console.error('Failed to load script:', e.target.src);
+            }
+        }, true);
+    </script>
+    
+    <!-- Load scripts in the correct order -->
+    <!-- 1. Helpers must be loaded first (used by all modules) -->
+    <script src="../helpers.js"></script>
+    
+    <!-- 2. Camera class (depends on helpers) -->
+    <script src="../camera.js"></script>
+    
+    <!-- 3. NPC class (depends on helpers) -->
+    <script src="../npc.js"></script>
+    
+    <!-- 4. 2D Map rendering modules -->
+    <script src="../2D map/camera2D.js"></script>
+    <script src="../2D map/npc2D.js"></script>
+    <script src="../2D map/map2DRenderer.js"></script>
+    
+    <!-- 5. Weapon system (optional, not used in dev mode) -->
+    <!-- <script src="../weapon.js"></script> -->
+    
+    <!-- 6. Game loop (depends on all modules) -->
+    <script src="../gameLoop.js"></script>
+    
+    <!-- 7. Dev Mode manager -->
+    <script src="devMode.js"></script>
+    
+    <!-- 8. Main entry point (coordinates everything) -->
+    <script src="../map.js"></script>
+</body>
+</html>

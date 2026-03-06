@@ -25,15 +25,16 @@ class Camera {
         document.addEventListener('keydown', (e) => {
             this.game.keys[e.code] = true;
             
-            if (e.code === 'ArrowLeft') this.d -= this.TSPEED;
-            if (e.code === 'ArrowRight') this.d += this.TSPEED;
+            // Controls are calibrated to the 3D camera view perspective
+            if (e.code === 'ArrowLeft') this.d += this.TSPEED;
+            if (e.code === 'ArrowRight') this.d -= this.TSPEED;
             if (e.code === 'ArrowUp') {
-                // Move in the direction the camera is facing
+                // Move forward in camera's facing direction (3D perspective)
                 this.x -= Math.sin(helpers.radians(this.d)) * this.WSPEED;
                 this.y -= Math.cos(helpers.radians(this.d)) * this.WSPEED;
             }
             if (e.code === 'ArrowDown') {
-                // Move backward from the direction the camera is facing
+                // Move backward from camera's facing direction (3D perspective)
                 this.x += Math.sin(helpers.radians(this.d)) * this.WSPEED;
                 this.y += Math.cos(helpers.radians(this.d)) * this.WSPEED;
             }
@@ -49,9 +50,8 @@ class Camera {
         if (this.d > 360) this.d = 0;
         if (this.d < 0) this.d = 360;
         
-        // Update view position for collision detection
-        const dd = -this.d;
-        const a = helpers.radians(dd + 90);
+        // Update view position for collision detection (aligned with 3D view)
+        const a = helpers.radians(this.d + 90);
         this.view.x = this.x + Math.cos(a) * this.view.r;
         this.view.y = this.y + Math.sin(a) * this.view.r;
     }
