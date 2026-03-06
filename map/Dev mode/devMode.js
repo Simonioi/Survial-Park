@@ -93,48 +93,56 @@ class DevMode {
     }
 
     /**
-     * Sync NPCs, camera, and score to localStorage for cross-page communication
+     * Sync NPCs to localStorage for cross-page communication
      */
     syncToLocalStorage() {
-        saveNPCsToStorage(this.game.npcs);
-        saveCameraToStorage(this.game.camera);
-        if (this.game.score) {
-            saveScoreToStorage(this.game.score);
-        }
+        const npcData = this.game.npcs.map(npc => ({
+            x: npc.x,
+            y: npc.y
+        }));
+        localStorage.setItem('survivalPark_npcs', JSON.stringify(npcData));
+        console.log(`✓ Synced ${npcData.length} NPCs to localStorage`);
     }
 
     /**
      * Load NPCs from localStorage
      */
     loadFromLocalStorage() {
-        const npcPositions = loadNPCsFromStorage();
-        if (!npcPositions) {
+        const npcData = localStorage.getItem('survivalPark_npcs');
+        if (!npcData) {
+            console.log('No NPCs in localStorage to load');
             return;
         }
         
-        // Clear existing NPCs
-        this.game.npcs.length = 0;
-        if (this.game.map2DRenderer && this.game.map2DRenderer.npc2D) {
-            this.game.map2DRenderer.npc2D.npcs.length = 0;
-        }
-        
-        // Spawn NPCs from stored data
-        const W = this.game.canvas2D.width;
-        const H = this.game.canvas2D.height;
-        const hH = H / 2;
-        
-        npcPositions.forEach((npcInfo, index) => {
-            const npc = new NPC(this.game, index, npcInfo.x, npcInfo.y, W, H, hH);
-            this.game.npcs.push(npc);
+        try {
+            const npcs = JSON.parse(npcData);
             
-            // Register with 2D map renderer
-            if (this.game.map2DRenderer) {
-                this.game.map2DRenderer.addNPC(npc);
+            // Clear existing NPCs
+            this.game.npcs.length = 0;
+            if (this.game.map2DRenderer && this.game.map2DRenderer.npc2D) {
+                this.game.map2DRenderer.npc2D.npcs.length = 0;
             }
-        });
-        
-        console.log(`✓ Loaded ${npcPositions.length} NPCs from localStorage`);
-        this.updateNPCCount();
+            
+            // Spawn NPCs from stored data
+            const W = this.game.canvas2D.width;
+            const H = this.game.canvas2D.height;
+            const hH = H / 2;
+            
+            npcs.forEach((npcInfo, index) => {
+                const npc = new NPC(this.game, index, npcInfo.x, npcInfo.y, W, H, hH);
+                this.game.npcs.push(npc);
+                
+                // Register with 2D map renderer
+                if (this.game.map2DRenderer) {
+                    this.game.map2DRenderer.addNPC(npc);
+                }
+            });
+            
+            console.log(`✓ Loaded ${npcs.length} NPCs from localStorage`);
+            this.updateNPCCount();
+        } catch (error) {
+            console.error('Failed to load NPCs from localStorage:', error);
+        }
     }
 
     /**
@@ -156,24 +164,6 @@ window.devMode = null;
 function initDevMode(game) {
     window.devMode = new DevMode(game);
     window.devMode.loadFromLocalStorage(); // Load existing NPCs
-    
-    // Load camera position
-    const savedCamera = loadCameraFromStorage();
-    if (savedCamera) {
-        game.camera.x = savedCamera.x;
-        game.camera.y = savedCamera.y;
-        game.camera.d = savedCamera.d;
-        console.log(`✓ Restored camera position in dev mode`);
-    }
-    
-    // Load score
-    const savedScore = loadScoreFromStorage();
-    if (savedScore) {
-        game.score.kills = savedScore.kills;
-        game.score.shots = savedScore.shots;
-        console.log(`✓ Restored score in dev mode`);
-    }
-    
     window.devMode.updateNPCCount();
     console.log('Dev Mode initialized - Click "Spawn NPC" to add NPCs manually');
 }
@@ -189,19 +179,3 @@ function clearNPCs() {
         window.devMode.clearAllNPCs();
     }
 }
-
-// Save game state when page is being closed/unloaded
-window.addEventListener('beforeunload', () => {
-    if (window.devMode && window.devMode.game) {
-        const game = window.devMode.game;
-        if (game.camera && typeof saveCameraToStorage === 'function') {
-            saveCameraToStorage(game.camera);
-        }
-        if (game.npcs && typeof saveNPCsToStorage === 'function') {
-            saveNPCsToStorage(game.npcs);
-        }
-        if (game.score && typeof saveScoreToStorage === 'function') {
-            saveScoreToStorage(game.score);
-        }
-    }
-});

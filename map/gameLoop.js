@@ -22,19 +22,9 @@ function createGameLoop(game, W, H) {
         // Update camera
         game.camera.loop();
         
-        // Save camera position and score periodically (every ~60 frames = ~1 second at 60fps)
+        // Clean up dead NPCs periodically (every ~100 frames = ~1.6 seconds at 60fps)
         if (!gameLoop.frameCount) gameLoop.frameCount = 0;
         gameLoop.frameCount++;
-        if (gameLoop.frameCount % 60 === 0) {
-            if (typeof saveCameraToStorage === 'function') {
-                saveCameraToStorage(game.camera);
-            }
-            if (typeof saveScoreToStorage === 'function' && game.score) {
-                saveScoreToStorage(game.score);
-            }
-        }
-        
-        // Clean up dead NPCs periodically (every ~100 frames = ~1.6 seconds at 60fps)
         if (gameLoop.frameCount % 100 === 0) {
             const beforeCount = game.npcs.length;
             game.npcs = game.npcs.filter(npc => !npc.isDead);
@@ -47,10 +37,6 @@ function createGameLoop(game, W, H) {
             
             if (beforeCount !== afterCount) {
                 console.log(`Cleaned up ${beforeCount - afterCount} dead NPCs (${afterCount} remaining)`);
-                // Sync to localStorage after cleanup so dev mode sees the changes
-                if (typeof saveNPCsToStorage === 'function') {
-                    saveNPCsToStorage(game.npcs);
-                }
             }
         }
         
