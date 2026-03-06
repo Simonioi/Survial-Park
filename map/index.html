@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survival Park - 3D Map Viewer</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 10px;
+            background-color: #222;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        canvas {
+            border: 2px solid #444;
+        }
+        
+        #target2 {
+            background-color: #fff;
+        }
+        
+        .canvas-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        #map2d-wrapper {
+            display: none;
+        }
+        
+        #map3d-wrapper {
+            display: flex;
+        }
+        
+        .label {
+            color: #fff;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .controls {
+            color: #fff;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 5px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .controls h3 {
+            margin: 0;
+            flex-basis: 100%;
+        }
+        
+        .controls ul {
+            margin: 5px 0;
+            padding-left: 20px;
+            flex: 1;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #0066cc;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #0052a3;
+        }
+        
+        button:active {
+            background-color: #004080;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="canvas-wrapper" id="map2d-wrapper">
+            <div class="label">2D Map View</div>
+            <canvas id="target2"></canvas>
+        </div>
+        <div class="canvas-wrapper" id="map3d-wrapper">
+            <div class="label">3D Perspective View</div>
+            <canvas id="target"></canvas>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <h3>Controls:</h3>
+        <ul>
+            <li><strong>Arrow Up/Down:</strong> Move forward/backward</li>
+            <li><strong>Arrow Left/Right:</strong> Rotate camera</li>
+        </ul>
+        <div class="button-group">
+            <button id="show2DBtn" onclick="showMap2D()">Show 2D Map</button>
+            <button id="show3DBtn" onclick="showMap3D()" style="display: none;">Back to 3D</button>
+        </div>
+    </div>
+    
+    <script>
+        function showMap2D() {
+            document.getElementById('map2d-wrapper').style.display = 'flex';
+            document.getElementById('map3d-wrapper').style.display = 'none';
+            document.getElementById('show2DBtn').style.display = 'none';
+            document.getElementById('show3DBtn').style.display = 'block';
+        }
+        
+        function showMap3D() {
+            document.getElementById('map2d-wrapper').style.display = 'none';
+            document.getElementById('map3d-wrapper').style.display = 'flex';
+            document.getElementById('show2DBtn').style.display = 'block';
+            document.getElementById('show3DBtn').style.display = 'none';
+        }
+    </script>
+    
+    <!-- Load scripts in the correct order -->
+    <!-- 1. Helpers must be loaded first (used by all modules) -->
+    <script src="helpers.js"></script>
+    
+    <!-- 2. Camera class (depends on helpers) -->
+    <script src="camera.js"></script>
+    
+    <!-- 3. NPC class (depends on helpers) -->
+    <script src="npc.js"></script>
+    
+    <!-- 4. 2D Map rendering modules -->
+    <script src="2D map/camera2D.js"></script>
+    <script src="2D map/npc2D.js"></script>
+    <script src="2D map/map2DRenderer.js"></script>
+    
+    <!-- 5. Game loop (depends on all modules) -->
+    <script src="gameLoop.js"></script>
+    
+    <!-- 6. Main entry point (coordinates everything) -->
+    <script src="map.js"></script>
+</body>
+</html>
