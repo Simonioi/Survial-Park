@@ -11,8 +11,8 @@
 (function() {
     'use strict';
 
-    const W = window.innerHeight - 20; // Use height for both dimensions to maintain square aspect ratio
-    const H = window.innerHeight - 20; // Use height for both dimensions to maintain square aspect ratio
+    const W = Math.min(600, window.innerHeight - 20); // Smaller canvas size, max 600px
+    const H = Math.min(600, window.innerHeight - 20); // Smaller canvas size, max 600px
     const hW = W / 2; // half-width and half-height for centering
     const hH = H / 2; // half-width and half-height for centering
     const TSPEED = 3; // turning speed
@@ -95,16 +95,62 @@
         game.map2DRenderer = new Map2DRenderer(game);
         game.map2DRenderer.init();
         
-        // Create NPCs (from npc.js)
-        for (let i = 0; i < 10; i++) {
-            const npc = new NPC(game, i, undefined, undefined, W, H, hH);
-            game.npcs.push(npc);
-            game.map2DRenderer.addNPC(npc); // Register NPC for 2D rendering
+        // Initialize Dev Mode if available (from Dev mode folder)
+        if (typeof initDevMode === 'function') {
+            initDevMode(game);
+            console.log('Dev Mode active - Use spawn button to add NPCs');
+        } else {
+            // Normal mode: No automatic NPC spawning
+            console.log('Normal mode - Use dev mode to spawn NPCs');
+            
+            // Load NPCs from localStorage (synced from dev mode)
+            loadNPCsFromLocalStorage();
+            
+            // Listen for NPC changes from dev mode
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'survivalPark_npcs') {
+                    console.log('NPCs changed in dev mode, syncing...');
+                    loadNPCsFromLocalStorage();
+                }
+            });
         }
         
         // Start game loop (from gameLoop.js)
         const gameLoop = createGameLoop(game, W, H);
         gameLoop();
+    }
+
+    function loadNPCsFromLocalStorage() {
+        const npcData = localStorage.getItem('survivalPark_npcs');
+        if (!npcData) {
+            console.log('No NPCs in localStorage');
+            return;
+        }
+        
+        try {
+            const npcs = JSON.parse(npcData);
+            
+            // Clear existing NPCs
+            game.npcs.length = 0;
+            if (game.map2DRenderer && game.map2DRenderer.npc2D) {
+                game.map2DRenderer.npc2D.npcs.length = 0;
+            }
+            
+            // Spawn NPCs from stored data
+            npcs.forEach((npcInfo, index) => {
+                const npc = new NPC(game, index, npcInfo.x, npcInfo.y, W, H, hH);
+                game.npcs.push(npc);
+                
+                // Register with 2D map renderer
+                if (game.map2DRenderer) {
+                    game.map2DRenderer.addNPC(npc);
+                }
+            });
+            
+            console.log(`✓ Loaded ${npcs.length} NPCs from dev mode`);
+        } catch (error) {
+            console.error('Failed to load NPCs from localStorage:', error);
+        }
     }
 
     // Start when DOM is ready

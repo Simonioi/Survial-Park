@@ -39,6 +39,7 @@ function createGameLoop(game, W, H) {
         // Update and collect NPC render data
         const renderData = [];
         for (let npc of game.npcs) {
+            if (!npc) continue; // Skip null/undefined NPCs
             const data = npc.loop();
             if (data) {
                 renderData.push(data);
@@ -53,23 +54,25 @@ function createGameLoop(game, W, H) {
         // Sort by z-index (furthest first)
         renderData.sort((a, b) => a.zIndex - b.zIndex);
         
-        // Render NPCs
-        if (npcImageLoaded) {
-            // Render NPCs as images
-            for (let data of renderData) {
-                const imageSize = data.scale * 2; // Scale the image based on distance
-                game.ctxNPC.drawImage(
-                    npcImage,
-                    data.x - imageSize / 2,
-                    data.y - imageSize / 2,
-                    imageSize,
-                    imageSize
-                );
-            }
-        } else {
-            // Fallback to circles while image loads
-            for (let data of renderData) {
-                draw.circle(game.ctxNPC, data.x, data.y, data.scale, data.color);
+        // Render NPCs (only if there are any to render)
+        if (renderData.length > 0) {
+            if (npcImageLoaded) {
+                // Render NPCs as images
+                for (let data of renderData) {
+                    const imageSize = data.scale * 2; // Scale the image based on distance
+                    game.ctxNPC.drawImage(
+                        npcImage,
+                        data.x - imageSize / 2,
+                        data.y - imageSize / 2,
+                        imageSize,
+                        imageSize
+                    );
+                }
+            } else {
+                // Fallback to circles while image loads
+                for (let data of renderData) {
+                    draw.circle(game.ctxNPC, data.x, data.y, data.scale, data.color);
+                }
             }
         }
 

@@ -36,7 +36,7 @@ class NPC {
             this.y, 
             5
         )) {
-            this.cr = helpers.radians(-this.camera.d); // Negate for correct 3D rotation direction
+            this.cr = helpers.radians(this.camera.d);
             this.dx = this.x - this.camera.x;
             this.dz = this.y - this.camera.y;
             this.dy = this.hH;

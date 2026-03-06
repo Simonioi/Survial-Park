@@ -12,25 +12,26 @@ class Camera2DRenderer {
      * @param {CanvasRenderingContext2D} ctx - 2D canvas context
      */
     render(ctx) {
-        const dd = -this.camera.d;
+        // Align with 3D view direction (no negation)
+        const d = this.camera.d;
         
         // Draw camera body (diamond shape)
         draw.polygon(ctx, [
-            this.calcPoint(this.camera.x, this.camera.y, dd + 45, 5),
-            this.calcPoint(this.camera.x, this.camera.y, dd + 135, 5),
-            this.calcPoint(this.camera.x, this.camera.y, dd + 225, 5),
-            this.calcPoint(this.camera.x, this.camera.y, dd + 315, 5)
+            this.calcPoint(this.camera.x, this.camera.y, d - 45, 5),
+            this.calcPoint(this.camera.x, this.camera.y, d - 135, 5),
+            this.calcPoint(this.camera.x, this.camera.y, d - 225, 5),
+            this.calcPoint(this.camera.x, this.camera.y, d - 315, 5)
         ], '#000000', 'fill');
         
         // Draw camera direction indicator
         draw.polygon(ctx, [
-            this.calcPoint(this.camera.x, this.camera.y, dd + 90, 5),
-            this.calcPoint(this.camera.x, this.camera.y, dd + 100, 10),
-            this.calcPoint(this.camera.x, this.camera.y, dd + 80, 10)
+            this.calcPoint(this.camera.x, this.camera.y, d - 90, 5),
+            this.calcPoint(this.camera.x, this.camera.y, d - 100, 10),
+            this.calcPoint(this.camera.x, this.camera.y, d - 80, 10)
         ], '#000000', 'fill');
         
-        // Draw view circle
-        const c = this.calcPoint(this.camera.x, this.camera.y, dd + 90, this.camera.view.r);
+        // Draw view circle (aligned with 3D perspective)
+        const c = this.calcPoint(this.camera.x, this.camera.y, d - 90, this.camera.view.r);
         draw.circle(ctx, c[0], c[1], this.camera.view.r, '#FF0000', 0.5);
     }
 
