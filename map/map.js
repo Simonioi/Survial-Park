@@ -181,23 +181,6 @@
     function startGame() {
         // Create camera (from camera.js)
         game.camera = new Camera(game, W, H, hW, hH, TSPEED, WSPEED);
-        
-        // Load camera position from localStorage if available
-        const savedCamera = loadCameraFromStorage();
-        if (savedCamera) {
-            game.camera.x = savedCamera.x;
-            game.camera.y = savedCamera.y;
-            game.camera.d = savedCamera.d;
-            console.log(`✓ Restored camera position from previous session`);
-        }
-        
-        // Load score from localStorage if available
-        const savedScore = loadScoreFromStorage();
-        if (savedScore) {
-            game.score.kills = savedScore.kills;
-            game.score.shots = savedScore.shots;
-            console.log(`✓ Restored score from previous session`);
-        }
 
         // Initialize isolated weapon modules when present.
         if (typeof createWeaponState === 'function') {
@@ -230,29 +213,36 @@
     }
 
     function loadNPCsFromLocalStorage() {
-        const npcPositions = loadNPCsFromStorage();
-        if (!npcPositions) {
+        const npcData = localStorage.getItem('survivalPark_npcs');
+        if (!npcData) {
+            console.log('No NPCs in localStorage');
             return;
         }
         
-        // Clear existing NPCs
-        game.npcs.length = 0;
-        if (game.map2DRenderer && game.map2DRenderer.npc2D) {
-            game.map2DRenderer.npc2D.npcs.length = 0;
-        }
-        
-        // Spawn NPCs from stored data
-        npcPositions.forEach((npcInfo, index) => {
-            const npc = new NPC(game, index, npcInfo.x, npcInfo.y, W, H, hH);
-            game.npcs.push(npc);
+        try {
+            const npcs = JSON.parse(npcData);
             
-            // Register with 2D map renderer
-            if (game.map2DRenderer) {
-                game.map2DRenderer.addNPC(npc);
+            // Clear existing NPCs
+            game.npcs.length = 0;
+            if (game.map2DRenderer && game.map2DRenderer.npc2D) {
+                game.map2DRenderer.npc2D.npcs.length = 0;
             }
-        });
-        
-        console.log(`✓ Loaded ${npcPositions.length} NPCs from dev mode`);
+            
+            // Spawn NPCs from stored data
+            npcs.forEach((npcInfo, index) => {
+                const npc = new NPC(game, index, npcInfo.x, npcInfo.y, W, H, hH);
+                game.npcs.push(npc);
+                
+                // Register with 2D map renderer
+                if (game.map2DRenderer) {
+                    game.map2DRenderer.addNPC(npc);
+                }
+            });
+            
+            console.log(`✓ Loaded ${npcs.length} NPCs from dev mode`);
+        } catch (error) {
+            console.error('Failed to load NPCs from localStorage:', error);
+        }
     }
 
     // Start when DOM is ready
@@ -261,19 +251,6 @@
     } else {
         init();
     }
-    
-    // Save game state when page is being closed/unloaded
-    window.addEventListener('beforeunload', () => {
-        if (game.camera && typeof saveCameraToStorage === 'function') {
-            saveCameraToStorage(game.camera);
-        }
-        if (game.npcs && typeof saveNPCsToStorage === 'function') {
-            saveNPCsToStorage(game.npcs);
-        }
-        if (game.score && typeof saveScoreToStorage === 'function') {
-            saveScoreToStorage(game.score);
-        }
-    });
     
     // Expose game for debugging
     window.game = game;
