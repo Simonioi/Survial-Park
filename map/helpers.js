@@ -1,11 +1,10 @@
-// Helper functions for math, utilities, and drawing on the 2D map
-
+// Helper functions for math, utilities, and drawing
 const helpers = {
-    radians: (deg) => deg * Math.PI / 180, // Convert degrees to radians for field of view calculations
+    radians: (deg) => deg * Math.PI / 180,
     
-    degrees: (rad) => rad * 180 / Math.PI, // Convert radians to degrees for camera rotation display
+    degrees: (rad) => rad * 180 / Math.PI,
     
-    random: (max) => Math.random() * max, // Generate a random number between 0 and max
+    random: (max) => Math.random() * max,
     
     randomColor: () => {
         const r = Math.floor(Math.random() * 256);
@@ -17,12 +16,12 @@ const helpers = {
     distance: (x1, y1, x2, y2) => {
         const dx = x2 - x1;
         const dy = y2 - y1;
-        return Math.sqrt(dx * dx + dy * dy); // Calculate distance between two points for collision detection
+        return Math.sqrt(dx * dx + dy * dy);
     },
     
-    checkCircleCollision: (x1, y1, r1, x2, y2, r2) => { // Check if two circles collide based on their centers and radii
+    checkCircleCollision: (x1, y1, r1, x2, y2, r2) => {
         const dist = helpers.distance(x1, y1, x2, y2);
-        return dist < (r1 + r2); 
+        return dist < (r1 + r2);
     }
 };
 

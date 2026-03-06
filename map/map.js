@@ -145,9 +145,9 @@
         }
     }
 
-    // Start when ready
+    // Start when DOM is ready
     if (document.readyState === 'loading') {
-        document.addEventListener('ContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
     }
