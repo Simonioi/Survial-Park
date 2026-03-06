@@ -105,14 +105,6 @@
             
             // Load NPCs from localStorage (synced from dev mode)
             loadNPCsFromLocalStorage();
-            
-            // Listen for NPC changes from dev mode
-            window.addEventListener('storage', (e) => {
-                if (e.key === 'survivalPark_npcs') {
-                    console.log('NPCs changed in dev mode, syncing...');
-                    loadNPCsFromLocalStorage();
-                }
-            });
         }
         
         // Start game loop (from gameLoop.js)
