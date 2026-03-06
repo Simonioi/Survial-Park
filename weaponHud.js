@@ -2,6 +2,44 @@
  * Weapon HUD Module
  * Draws crosshair, pistol sprite, muzzle flash and score overlay
  */
+const weaponHudAssets = {
+    pistolNeutral: null,
+    pistolFire: null,
+    neutralLoaded: false,
+    fireLoaded: false,
+    loadFailed: false,
+    triedLoading: false
+};
+
+function ensureWeaponSpriteLoaded() {
+    if (weaponHudAssets.triedLoading) {
+        return;
+    }
+
+    weaponHudAssets.triedLoading = true;
+    const neutralImg = new Image();
+    neutralImg.onload = () => {
+        weaponHudAssets.neutralLoaded = true;
+        weaponHudAssets.pistolNeutral = neutralImg;
+    };
+    neutralImg.onerror = () => {
+        weaponHudAssets.loadFailed = true;
+        console.error('Failed to load weapon sprite: ../Ressource/doom pistol 1.png');
+    };
+    neutralImg.src = '../Ressource/doom pistol 1.png';
+
+    const fireImg = new Image();
+    fireImg.onload = () => {
+        weaponHudAssets.fireLoaded = true;
+        weaponHudAssets.pistolFire = fireImg;
+    };
+    fireImg.onerror = () => {
+        weaponHudAssets.loadFailed = true;
+        console.error('Failed to load weapon sprite: ../Ressource/doom pistol 2.png');
+    };
+    fireImg.src = '../Ressource/doom pistol 2.png';
+}
+
 function drawWeaponCrosshair(game, now) {
     const cx = game.camera.hW;
     const cy = game.camera.hH;
@@ -28,35 +66,57 @@ function drawWeaponCrosshair(game, now) {
 }
 
 function drawWeaponOverlay(game, W, H, now) {
+    ensureWeaponSpriteLoaded();
+
     const centerX = game.camera.hW;
+    const centerY = game.camera.hH;
     const recoilY = game.weapon.recoil;
-    const weaponY = H - 95 + recoilY;
+    const isFiring = now < game.weapon.muzzleFlashUntil;
+    const fireAnimMs = game.weapon.fireAnimMs || 90;
+    const fireProgress = isFiring ? (1 - ((game.weapon.muzzleFlashUntil - now) / fireAnimMs)) : 0;
+
+    // Doom-like punch: quick downward kick then settle back.
+    const shotKick = isFiring ? Math.sin(fireProgress * Math.PI) * 18 : 0;
+
+    const baseWidth = Math.round(W * 0.42);
+    const baseHeight = Math.round(baseWidth * 0.75);
+    const rightMargin = 14;
+    const bottomMargin = 10;
+    const stretchX = isFiring ? 1.04 : 1;
+    const stretchY = isFiring ? 0.97 : 1;
+    const drawWidth = baseWidth * stretchX;
+    const drawHeight = baseHeight * stretchY;
+
+    // Keep the weapon anchored bottom-right while allowing recoil motion.
+    const drawX = W - rightMargin - drawWidth;
+    const drawY = H - bottomMargin - drawHeight + recoilY + shotKick;
+
+    // Approximate muzzle position inside the sprite to align flash with crosshair.
+    const muzzleX = drawX + (drawWidth * 0.23);
+    const muzzleY = drawY + (drawHeight * 0.25);
 
     game.ctxNPC.save();
 
-    game.ctxNPC.fillStyle = '#2f2f2f';
-    game.ctxNPC.fillRect(centerX - 60, weaponY, 120, 88);
+    const activeSprite = isFiring ? weaponHudAssets.pistolFire : weaponHudAssets.pistolNeutral;
+    const spriteReady = isFiring ? weaponHudAssets.fireLoaded : weaponHudAssets.neutralLoaded;
 
-    game.ctxNPC.fillStyle = '#4a4a4a';
-    game.ctxNPC.fillRect(centerX - 22, weaponY - 46, 44, 50);
+    if (spriteReady && activeSprite) {
+        game.ctxNPC.imageSmoothingEnabled = false;
+        game.ctxNPC.drawImage(
+            activeSprite,
+            drawX,
+            drawY,
+            drawWidth,
+            drawHeight
+        );
+    } else {
+        // Temporary fallback while sprite loads.
+        game.ctxNPC.fillStyle = '#2f2f2f';
+        game.ctxNPC.fillRect(drawX, drawY, drawWidth, drawHeight);
+    }
 
-    game.ctxNPC.fillStyle = '#6a6a6a';
-    game.ctxNPC.fillRect(centerX - 9, weaponY - 72, 18, 28);
-
-    game.ctxNPC.fillStyle = '#1b1b1b';
-    game.ctxNPC.fillRect(centerX - 42, weaponY + 12, 84, 12);
-
-    if (now < game.weapon.muzzleFlashUntil) {
-        game.ctxNPC.globalAlpha = 0.9;
-        game.ctxNPC.fillStyle = '#ffd84d';
-        game.ctxNPC.beginPath();
-        game.ctxNPC.moveTo(centerX, weaponY - 96);
-        game.ctxNPC.lineTo(centerX - 14, weaponY - 72);
-        game.ctxNPC.lineTo(centerX + 14, weaponY - 72);
-        game.ctxNPC.closePath();
-        game.ctxNPC.fill();
-
-        game.ctxNPC.globalAlpha = 0.25;
+    if (isFiring) {
+        game.ctxNPC.globalAlpha = 0.2;
         game.ctxNPC.fillStyle = '#fff0a0';
         game.ctxNPC.fillRect(0, 0, W, H * 0.35);
     }

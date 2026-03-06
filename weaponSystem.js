@@ -5,6 +5,7 @@
 function createWeaponState() {
     return {
         cooldownMs: 420,
+        fireAnimMs: 120,
         lastShotTime: 0,
         muzzleFlashUntil: 0,
         recoil: 0,
@@ -68,7 +69,7 @@ function updateWeaponSystem(game, renderData, now) {
     }
 
     game.weapon.lastShotTime = now;
-    game.weapon.muzzleFlashUntil = now + 90;
+    game.weapon.muzzleFlashUntil = now + game.weapon.fireAnimMs;
     game.weapon.recoil = game.weapon.recoilKick;
     game.score.shots += 1;
 
