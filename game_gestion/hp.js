@@ -3,18 +3,18 @@
 const entities = new Map();
 let nextId = 1;
 
-export function createEntity(name, maxHp) {
+function createEntity(name, maxHp) {
   if (maxHp < 1) maxHp = 1;
   const id = nextId++;
   entities.set(id, { id, name, maxHp, hp: maxHp, log: [] });
   return id;
 }
 
-export function removeEntity(id) {
+function removeEntity(id) {
   entities.delete(id);
 }
 
-export function damage(id, amount) {
+function damage(id, amount) {
   const e = _get(id);
   if (!e || e.hp === 0) return;
   amount = Math.max(0, amount);
@@ -23,7 +23,7 @@ export function damage(id, amount) {
   if (e.hp === 0) e.log.unshift('MORT');
 }
 
-export function heal(id, amount) {
+function heal(id, amount) {
   const e = _get(id);
   if (!e || e.hp === 0) return;
   amount = Math.max(0, amount);
@@ -31,17 +31,17 @@ export function heal(id, amount) {
   e.log.unshift(`+${amount} HP → ${e.hp}`);
 }
 
-export function reset(id) {
+function reset(id) {
   const e = _get(id);
   if (!e) return;
   e.hp = e.maxHp;
   e.log.unshift('Réinitialisation');
 }
 
-export function getHp(id)     { return _get(id)?.hp ?? null; }
-export function getMaxHp(id)  { return _get(id)?.maxHp ?? null; }
-export function isDead(id)    { return _get(id)?.hp === 0; }
-export function getStatus(id) {
+function getHp(id)     { return _get(id)?.hp ?? null; }
+function getMaxHp(id)  { return _get(id)?.maxHp ?? null; }
+function isDead(id)    { return _get(id)?.hp === 0; }
+function getStatus(id) {
   const e = _get(id);
   if (!e) return null;
   const pct = e.hp / e.maxHp;
@@ -50,11 +50,45 @@ export function getStatus(id) {
   if (pct <= 0.50)  return 'warning';
   return 'healthy';
 }
-export function getLog(id, limit = 10) {
+function getLog(id, limit = 10) {
   return _get(id)?.log.slice(0, limit) ?? [];
 }
-export function getAll() {
+function getAll() {
   return [...entities.values()].map(e => ({ ...e, log: [...e.log] }));
 }
 
 function _get(id) { return entities.get(id) ?? null; }
+
+// Expose as global for non-module scripts
+if (typeof window !== 'undefined') {
+  window.hp = {
+    createEntity,
+    removeEntity,
+    damage,
+    heal,
+    reset,
+    getHp,
+    getMaxHp,
+    isDead,
+    getStatus,
+    getLog,
+    getAll
+  };
+}
+
+// Export for ES6 modules (optional, for future use)
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    createEntity,
+    removeEntity,
+    damage,
+    heal,
+    reset,
+    getHp,
+    getMaxHp,
+    isDead,
+    getStatus,
+    getLog,
+    getAll
+  };
+}
