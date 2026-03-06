@@ -272,35 +272,39 @@
     
     <!-- Load scripts in the correct order -->
     <!-- 1. Helpers must be loaded first (used by all modules) -->
-    <script src="../helpers.js"></script>
+    <script src="../map/helpers.js"></script>
     
     <!-- 2. HP system from game_gestion (used by NPCs) -->
-    <script src="../../game_gestion/hp.js"></script>
+    <script src="../game_gestion/hp.js"></script>
     
     <!-- 2.5. Save system for localStorage management -->
     <script src="../game_gestion/saveSystem.js"></script>
     
     <!-- 3. Camera class (depends on helpers) -->
-    <script src="../camera.js"></script>
+    <script src="../map/camera.js"></script>
     
-    <!-- 4. NPC class (depends on helpers and hp) -->
-    <script src="../npc.js"></script>
+    <!-- 4. Floor module (depends on nothing) -->
+    <script src="../map/modules/floor.js"></script>
     
-    <!-- 4. 2D Map rendering modules -->
-    <script src="../2D map/camera2D.js"></script>
-    <script src="../2D map/npc2D.js"></script>
-    <script src="../2D map/map2DRenderer.js"></script>
+    <!-- 5. NPC class (depends on helpers and hp) -->
+    <script src="../map/npc.js"></script>
     
-    <!-- 5. Weapon system (optional, not used in dev mode) -->
-    <!-- <script src="../weapon.js"></script> -->
+    <!-- 6. 2D Map rendering modules -->
+    <script src="../map/2D map/camera2D.js"></script>
+    <script src="../map/2D map/npc2D.js"></script>
+    <script src="../map/2D map/map2DRenderer.js"></script>
     
-    <!-- 6. Game loop (depends on all modules) -->
-    <script src="../gameLoop.js"></script>
+    <!-- 7. Weapon system (optional, not used in dev mode) -->
+    <!-- <script src="../game_gestion/weaponSystem.js"></script> -->
+    <!-- <script src="../game_gestion/weaponHud.js"></script> -->
     
-    <!-- 7. Dev Mode manager -->
+    <!-- 8. Game loop (depends on all modules, in game_gestion) -->
+    <script src="../game_gestion/gameLoop.js"></script>
+    
+    <!-- 9. Dev Mode manager -->
     <script src="devMode.js"></script>
     
-    <!-- 8. Main entry point (coordinates everything) -->
-    <script src="../map.js"></script>
+    <!-- 10. Main entry point (coordinates everything) -->
+    <script src="../map/map.js"></script>
 </body>
 </html>

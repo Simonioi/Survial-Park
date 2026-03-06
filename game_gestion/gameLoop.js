@@ -14,7 +14,7 @@ function createGameLoop(game, W, H) {
     npcImage.onerror = () => {
         console.error('Failed to load ugly.png for 3D NPCs');
     };
-    npcImage.src = 'ugly.png';
+    npcImage.src = '../Ressource/ugly.png';
     
     function gameLoop() {
         const now = performance.now();
@@ -59,11 +59,11 @@ function createGameLoop(game, W, H) {
             game.map2DRenderer.render();
         }
         
-        // Draw background image if loaded, otherwise clear with black
-        if (game.backgroundImage) {
-            game.ctxNPC.drawImage(game.backgroundImage, 0, 0, W, H);
+        // Draw floor/background
+        if (game.floor) {
+            game.floor.render(game.ctxNPC, W, H);
         } else {
-            // Clear to black if no background
+            // Fallback if floor module not initialized
             game.ctxNPC.fillStyle = '#000000';
             game.ctxNPC.fillRect(0, 0, W, H);
         }
