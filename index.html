@@ -11,12 +11,11 @@
 
     <div id="main-menu">
         <h1>SURVIVAL PARK</h1>
-        <button class="menu-btn" onclick="startGame()">▶ PLAY</button>
+        <button class="menu-btn" onclick="lancerMenu()">▶ JOUER</button>
         <button class="menu-btn" onclick="alert('Options bientôt disponibles !')">⚙ OPTIONS</button>
     </div>
 
     <div id="game-ui" style="display: none;">
-        
         <div class="container">
             <div class="canvas-wrapper" id="map2d-wrapper">
                 <div class="label">2D Map View</div>
@@ -39,8 +38,10 @@
                 <button onclick="window.location.href='Dev mode/devMode.html'" style="background-color: #cc6600;">🛠️ Dev Mode</button>
             </div>
         </div>
+    </div>
 
-    </div> <script src="map/helpers.js"></script>
+    <script src="game_gestion/logger.js"></script>
+    <script src="map/helpers.js"></script>
     <script src="game_gestion/hp.js"></script>
     <script src="map/camera.js"></script>
     <script src="map/modules/floor.js"></script>
@@ -54,6 +55,6 @@
     <script src="game_gestion/gameLoop.js"></script>
     <script src="map/map.js"></script>
 
-    <script src="menu.js"></script>
+    <script src="game_gestion/menu.js"></script>
 </body>
 </html>

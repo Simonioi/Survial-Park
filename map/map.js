@@ -66,7 +66,7 @@
         game.floor = new Floor(game);
         
         // Preload floor background image
-        game.floor.load('../Ressource/black_bg_test.jpg', (success) => {
+        game.floor.load('Ressource/black_bg_test.jpg', (success) => {
             startGame();
         });
     }
