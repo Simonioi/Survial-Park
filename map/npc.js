@@ -1,16 +1,16 @@
-/**
- * NPC Class - Non Player Character
- * Handles NPC position and 3D projection rendering
- */
+// NPC class representing non-player characters (mobs) in the game world
+// Each NPC has a position, health, and rendering logic to display in the 3D view
+// NPCs are also registered with the 2D map renderer for visualization on the top-down map
+// NPCs can be hit by the player's weapon, which reduces their health and eventually kills them
 class NPC {
     constructor(game, i, x, y, W, H, hH) {
         this.game = game;
         this.i = i;
         this.W = W;
-        this.H = H;
+        this.H = H; // Store canvas dimensions for random spawning and boundary checks 
         this.hH = hH;
         
-        this.x = x !== undefined ? x : helpers.random(W);
+        this.x = x !== undefined ? x : helpers.random(W); // Random spawn if no coordinates provided
         this.y = y !== undefined ? y : helpers.random(H);
         this.camera = game.camera;
         this.dx = 0;
