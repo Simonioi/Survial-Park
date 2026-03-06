@@ -142,10 +142,13 @@
     <!-- 1. Helpers must be loaded first (used by all modules) -->
     <script src="helpers.js"></script>
     
-    <!-- 2. Camera class (depends on helpers) -->
+    <!-- 2. HP system from game_gestion (used by NPCs) -->
+    <script src="../game_gestion/hp.js"></script>
+    
+    <!-- 3. Camera class (depends on helpers) -->
     <script src="camera.js"></script>
     
-    <!-- 3. NPC class (depends on helpers) -->
+    <!-- 4. NPC class (depends on helpers and hp) -->
     <script src="npc.js"></script>
     
     <!-- 4. 2D Map rendering modules -->
