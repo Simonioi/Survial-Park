@@ -43,7 +43,7 @@
         // Setup canvas for 2D view
         const canvas2D = document.getElementById('target2');
         if (!canvas2D) {
-            console.error('Canvas element "target2" not found');
+            Logger.error('Canvas element "target2" not found');
             return;
         }
         canvas2D.width = W;
@@ -54,7 +54,7 @@
         // Setup canvas for NPC 3D view
         const canvasNPC = document.getElementById('target');
         if (!canvasNPC) {
-            console.error('Canvas element "target" not found');
+            Logger.error('Canvas element "target" not found');
             return;
         }
         canvasNPC.width = W;
@@ -72,37 +72,19 @@
     }
     
     function loadWallTexture() {
-        console.log('Loading wall texture...');
+        Logger.debug('Loading wall texture...');
         const wallTexture = new Image();
-        wallTexture.onload = () => {
-            console.log('Wall texture (tree_wall.jpg) loaded successfully!');
-            game.wallTexture = wallTexture;
-            startGame();
-        };
-        wallTexture.onerror = (e) => {
-            console.error('Failed to load wall texture:', e);
-            console.log('Starting game without wall texture');
-            game.wallTexture = null;
-            startGame();
-        };
-        wallTexture.src = '../Ressource/tree_wall.jpg';
-    }
-    
-    function loadWallTexture() {
-        console.log('Loading wall texture...');
-        const wallTexture = new Image();
-        wallTexture.onload = () => {
-            console.log('Wall texture (tree_wall.jpg) loaded successfully!');
-            game.wallTexture = wallTexture;
-            startGame();
-        };
-        wallTexture.onerror = (e) => {
-            console.error('Failed to load wall texture:', e);
-            console.log('Starting game without wall texture');
-            game.wallTexture = null;
-            startGame();
-        };
-        wallTexture.src = '../Ressource/tree_wall.jpg';
+        Logger.wrapImageLoad(wallTexture, 'Wall texture (tree_wall.jpg)', '../Ressource/tree_wall.jpg',
+            () => {
+                game.wallTexture = wallTexture;
+                startGame();
+            },
+            (e) => {
+                Logger.info('Starting game without wall texture');
+                game.wallTexture = null;
+                startGame();
+            }
+        );
     }
     
     function createWalls() {
@@ -198,10 +180,10 @@
         // Initialize Dev Mode if available (from Dev mode folder)
         if (typeof initDevMode === 'function') {
             initDevMode(game);
-            console.log('Dev Mode active - Use spawn button to add NPCs');
+            Logger.gameState('Dev Mode active - Use spawn button to add NPCs');
         } else {
             // Normal mode: No automatic NPC spawning
-            console.log('Normal mode - Use dev mode to spawn NPCs');
+            Logger.gameState('Normal mode - Use dev mode to spawn NPCs');
             
             // Load NPCs from localStorage (synced from dev mode)
             loadNPCsFromLocalStorage();
@@ -211,7 +193,7 @@
         window.addEventListener('beforeunload', () => {
             if (window.SaveSystem && game) {
                 SaveSystem.saveGame(game);
-                console.log('Auto-saved game state on page unload');
+                Logger.autoSave.onUnload();
             }
         });
         
@@ -232,10 +214,10 @@
         if (window.SaveSystem) {
             SaveSystem.loadGame(game, W, H, hH);
         } else {
-            console.warn('SaveSystem not loaded, falling back to direct load');
+            Logger.warn('SaveSystem not loaded, falling back to direct load');
             const npcData = localStorage.getItem('survivalPark_npcs');
             if (!npcData) {
-                console.log('No NPCs in localStorage');
+                Logger.storage.missing('NPCs');
                 return;
             }
             
@@ -259,9 +241,9 @@
                     }
                 });
                 
-                console.log(`✓ Loaded ${npcs.length} NPCs from dev mode`);
+                Logger.npcs.loaded(npcs.length);
             } catch (error) {
-                console.error('Failed to load NPCs from localStorage:', error);
+                Logger.storage.failed('load', 'NPCs', error);
             }
         }
     }

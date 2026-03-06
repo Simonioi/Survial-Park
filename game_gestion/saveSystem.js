@@ -20,7 +20,7 @@ const SaveSystem = {
         this.saveNPCs(game.npcs);
         this.savePlayerPosition(game.camera);
         this.saveStats(game.score);
-        console.log('✓ Game state saved to localStorage');
+        Logger.saved('game state', 'to localStorage');
     },
 
     /**
@@ -34,7 +34,7 @@ const SaveSystem = {
         this.loadPlayerPosition(game.camera);
         this.loadStats(game.score);
         this.loadNPCs(game, W, H, hH);
-        console.log('✓ Game state loaded from localStorage');
+        Logger.loaded('game state', 'from localStorage');
     },
 
     /**
@@ -48,7 +48,7 @@ const SaveSystem = {
             isDead: npc.isDead || false
         }));
         localStorage.setItem(this.KEYS.NPCS, JSON.stringify(npcData));
-        console.log(`✓ Saved ${npcData.length} NPCs (including ${npcData.filter(n => n.isDead).length} dead)`);
+        Logger.npcs.saved(npcData.length, npcData.filter(n => n.isDead).length);
     },
 
     /**
@@ -62,7 +62,7 @@ const SaveSystem = {
     loadNPCs(game, W, H, hH) {
         const npcData = localStorage.getItem(this.KEYS.NPCS);
         if (!npcData) {
-            console.log('No NPCs in localStorage');
+            Logger.storage.missing('NPCs');
             return 0;
         }
 
@@ -93,10 +93,10 @@ const SaveSystem = {
                 }
             });
 
-            console.log(`✓ Loaded ${npcs.length} NPCs from localStorage`);
+            Logger.npcs.loaded(npcs.length);
             return npcs.length;
         } catch (error) {
-            console.error('Failed to load NPCs from localStorage:', error);
+            Logger.storage.failed('load', 'NPCs', error);
             return 0;
         }
     },
@@ -112,7 +112,7 @@ const SaveSystem = {
             rotation: camera.d
         };
         localStorage.setItem(this.KEYS.PLAYER, JSON.stringify(playerData));
-        console.log(`✓ Saved player position (${Math.round(camera.x)}, ${Math.round(camera.y)}, ${Math.round(camera.d)}°)`);
+        Logger.playerPosition.saved(camera.x, camera.y, camera.d);
     },
 
     /**
@@ -123,7 +123,7 @@ const SaveSystem = {
     loadPlayerPosition(camera) {
         const playerData = localStorage.getItem(this.KEYS.PLAYER);
         if (!playerData) {
-            console.log('No player position in localStorage');
+            Logger.storage.missing('player position');
             return false;
         }
 
@@ -132,10 +132,10 @@ const SaveSystem = {
             camera.x = data.x;
             camera.y = data.y;
             camera.d = data.rotation;
-            console.log(`✓ Loaded player position (${Math.round(data.x)}, ${Math.round(data.y)}, ${Math.round(data.rotation)}°)`);
+            Logger.playerPosition.loaded(data.x, data.y, data.rotation);
             return true;
         } catch (error) {
-            console.error('Failed to load player position:', error);
+            Logger.storage.failed('load', 'player position', error);
             return false;
         }
     },
@@ -150,7 +150,7 @@ const SaveSystem = {
             shots: score.shots || 0
         };
         localStorage.setItem(this.KEYS.STATS, JSON.stringify(statsData));
-        console.log(`✓ Saved stats (Kills: ${statsData.kills}, Shots: ${statsData.shots})`);
+        Logger.stats.saved(statsData.kills, statsData.shots);
     },
 
     /**
@@ -161,7 +161,7 @@ const SaveSystem = {
     loadStats(score) {
         const statsData = localStorage.getItem(this.KEYS.STATS);
         if (!statsData) {
-            console.log('No stats in localStorage');
+            Logger.storage.missing('stats');
             return false;
         }
 
@@ -169,10 +169,10 @@ const SaveSystem = {
             const data = JSON.parse(statsData);
             score.kills = data.kills || 0;
             score.shots = data.shots || 0;
-            console.log(`✓ Loaded stats (Kills: ${data.kills}, Shots: ${data.shots})`);
+            Logger.stats.loaded(data.kills, data.shots);
             return true;
         } catch (error) {
-            console.error('Failed to load stats:', error);
+            Logger.storage.failed('load', 'stats', error);
             return false;
         }
     },
@@ -184,7 +184,7 @@ const SaveSystem = {
         localStorage.removeItem(this.KEYS.NPCS);
         localStorage.removeItem(this.KEYS.PLAYER);
         localStorage.removeItem(this.KEYS.STATS);
-        console.log('✓ Cleared all saved game data');
+        Logger.info('✓ Cleared all saved game data');
     },
 
     /**
