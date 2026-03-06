@@ -93,55 +93,68 @@ class DevMode {
     }
 
     /**
-     * Sync NPCs to localStorage for cross-page communication
+     * Sync game state to localStorage using SaveSystem
      */
     syncToLocalStorage() {
-        const npcData = this.game.npcs.map(npc => ({
-            x: npc.x,
-            y: npc.y
-        }));
-        localStorage.setItem('survivalPark_npcs', JSON.stringify(npcData));
-        console.log(`✓ Synced ${npcData.length} NPCs to localStorage`);
+        if (window.SaveSystem) {
+            SaveSystem.saveGame(this.game);
+        } else {
+            console.warn('SaveSystem not loaded, falling back to direct save');
+            const npcData = this.game.npcs.map(npc => ({
+                x: npc.x,
+                y: npc.y
+            }));
+            localStorage.setItem('survivalPark_npcs', JSON.stringify(npcData));
+        }
     }
 
     /**
-     * Load NPCs from localStorage
+     * Load game state from localStorage using SaveSystem
      */
     loadFromLocalStorage() {
-        const npcData = localStorage.getItem('survivalPark_npcs');
-        if (!npcData) {
-            console.log('No NPCs in localStorage to load');
-            return;
-        }
-        
-        try {
-            const npcs = JSON.parse(npcData);
-            
-            // Clear existing NPCs
-            this.game.npcs.length = 0;
-            if (this.game.map2DRenderer && this.game.map2DRenderer.npc2D) {
-                this.game.map2DRenderer.npc2D.npcs.length = 0;
-            }
-            
-            // Spawn NPCs from stored data
+        if (window.SaveSystem) {
             const W = this.game.canvas2D.width;
             const H = this.game.canvas2D.height;
             const hH = H / 2;
-            
-            npcs.forEach((npcInfo, index) => {
-                const npc = new NPC(this.game, index, npcInfo.x, npcInfo.y, W, H, hH);
-                this.game.npcs.push(npc);
-                
-                // Register with 2D map renderer
-                if (this.game.map2DRenderer) {
-                    this.game.map2DRenderer.addNPC(npc);
-                }
-            });
-            
-            console.log(`✓ Loaded ${npcs.length} NPCs from localStorage`);
+            SaveSystem.loadGame(this.game, W, H, hH);
             this.updateNPCCount();
-        } catch (error) {
-            console.error('Failed to load NPCs from localStorage:', error);
+        } else {
+            console.warn('SaveSystem not loaded, falling back to direct load');
+            const npcData = localStorage.getItem('survivalPark_npcs');
+            if (!npcData) {
+                console.log('No NPCs in localStorage to load');
+                return;
+            }
+            
+            try {
+                const npcs = JSON.parse(npcData);
+                
+                // Clear existing NPCs
+                this.game.npcs.length = 0;
+                if (this.game.map2DRenderer && this.game.map2DRenderer.npc2D) {
+                    this.game.map2DRenderer.npc2D.npcs.length = 0;
+                }
+                
+                // Spawn NPCs from stored data
+                const W = this.game.canvas2D.width;
+                const H = this.game.canvas2D.height;
+                const hH = H / 2;
+                
+                npcs.forEach((npcInfo, index) => {
+                    const npc = new NPC(this.game, index, npcInfo.x, npcInfo.y, W, H, hH);
+                    this.game.npcs.push(npc);
+                    
+                    // Register with 2D map renderer
+                    if (this.game.map2DRenderer) {
+                        this.game.map2DRenderer.addNPC(npc);
+                    }
+                });
+                
+                console.log(`✓ Loaded ${npcs.length} NPCs from localStorage`);
+                this.updateNPCCount();
+            } catch (error) {
+                console.error('Failed to load NPCs from localStorage:', error);
+            }
         }
     }
 
@@ -165,7 +178,24 @@ function initDevMode(game) {
     window.devMode = new DevMode(game);
     window.devMode.loadFromLocalStorage(); // Load existing NPCs
     window.devMode.updateNPCCount();
+    
+    // Auto-save when leaving the page
+    window.addEventListener('beforeunload', () => {
+        if (window.devMode && window.devMode.game) {
+            window.devMode.syncToLocalStorage();
+            console.log('Auto-saved game state on page unload');
+        }
+    });
+    
+    // Periodic auto-save every 10 seconds
+    setInterval(() => {
+        if (window.devMode && window.devMode.game) {
+            window.devMode.syncToLocalStorage();
+        }
+    }, 10000);
+    
     console.log('Dev Mode initialized - Click "Spawn NPC" to add NPCs manually');
+    console.log('Auto-save enabled: saves on page unload and every 10 seconds');
 }
 
 function spawnNPC() {
