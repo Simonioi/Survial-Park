@@ -16,7 +16,8 @@ class Camera {
         this.x = hW;
         this.y = hH;
         this.fov = 850;
-        this.view = { x: null, y: null, r: 400 };
+        this.fovAngle = 120; // Field of view angle in degrees
+        this.view = { x: null, y: null, r: 70 }; // 7 squares * 10 units per square
         
         this.setupKeyBindings(); // setup keyboard controls for camera movement and rotation
     }

@@ -116,27 +116,11 @@
             <li><strong>Mouse Left Click / Space:</strong> Fire pistol</li>
         </ul>
         <div class="button-group">
-            <button id="show2DBtn" onclick="showMap2D()">Show 2D Map</button>
-            <button id="show3DBtn" onclick="showMap3D()" style="display: none;">Back to 3D</button>
             <button onclick="window.location.href='Dev mode/devMode.html'" style="background-color: #cc6600;">🛠️ Dev Mode</button>
         </div>
     </div>
     
-    <script>
-        function showMap2D() {
-            document.getElementById('map2d-wrapper').style.display = 'flex';
-            document.getElementById('map3d-wrapper').style.display = 'none';
-            document.getElementById('show2DBtn').style.display = 'none';
-            document.getElementById('show3DBtn').style.display = 'block';
-        }
-        
-        function showMap3D() {
-            document.getElementById('map2d-wrapper').style.display = 'none';
-            document.getElementById('map3d-wrapper').style.display = 'flex';
-            document.getElementById('show2DBtn').style.display = 'block';
-            document.getElementById('show3DBtn').style.display = 'none';
-        }
-    </script>
+
     
     <!-- Load scripts in the correct order -->
     <!-- 1. Helpers must be loaded first (used by all modules) -->

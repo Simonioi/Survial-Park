@@ -54,41 +54,60 @@ class NPC {
             return null;
         }
         
-        // Check if NPC is outside camera view
-        if (!helpers.checkCircleCollision(
-            this.camera.view.x, 
-            this.camera.view.y, 
-            this.camera.view.r, 
-            this.x, 
-            this.y, 
-            5
-        )) {
-            this.cr = helpers.radians(this.camera.d);
-            this.dx = this.x - this.camera.x;
-            this.dz = this.y - this.camera.y;
-            this.dy = this.hH;
-            this.angle = Math.atan2(this.dz, this.dx);
-            this.radius = Math.sqrt(this.dx * this.dx + this.dz * this.dz) * 4;
-            this.dx = Math.cos(this.angle + this.cr) * this.radius;
-            
-            const dis = helpers.distance(this.x, this.y, this.camera.x, this.camera.y);
-            this.zIndex = -dis;
-            
-            this.scaleRatio = this.fov / (this.fov + (dis * 5));
-            this.dx = this.dx * this.scaleRatio;
-            this.scale = this.scaleRatio * this.size;
-            
-            // Store for z-sorting and weapon targeting
-            return {
-                x: this.dx + this.camera.hW,
-                y: this.dy,
-                scale: this.scale,
-                color: this.color,
-                zIndex: this.zIndex,
-                distance: dis,
-                npc: this
-            };
+        // Calculate distance to camera
+        const dis = helpers.distance(this.x, this.y, this.camera.x, this.camera.y);
+        
+        // Check if NPC is within render distance (7 squares = 70 units)
+        if (dis > this.camera.view.r) {
+            return null; // Too far away
         }
-        return null;
+        
+        // Calculate angle from camera to NPC
+        this.dx = this.x - this.camera.x;
+        this.dz = this.y - this.camera.y;
+        const npcAngle = Math.atan2(this.dz, this.dx);
+        
+        // Calculate camera direction angle (adjusted for coordinate system)
+        // Camera d=0 is north, but atan2 uses east as 0, so subtract 90
+        const cameraAngle = helpers.radians(this.camera.d - 90);
+        
+        // Calculate relative angle (NPC angle relative to camera direction)
+        let relativeAngle = npcAngle - cameraAngle;
+        
+        // Normalize angle to -π to π range
+        while (relativeAngle > Math.PI) relativeAngle -= 2 * Math.PI;
+        while (relativeAngle < -Math.PI) relativeAngle += 2 * Math.PI;
+        
+        // Convert to degrees and check if within FOV (120° = ±60°)
+        const relativeAngleDeg = helpers.degrees(relativeAngle);
+        const halfFOV = this.camera.fovAngle / 2;
+        
+        if (Math.abs(relativeAngleDeg) > halfFOV) {
+            return null; // Outside FOV cone
+        }
+        
+        // NPC is visible - calculate rendering position
+        this.cr = helpers.radians(this.camera.d);
+        this.dy = this.hH;
+        this.angle = npcAngle;
+        this.radius = Math.sqrt(this.dx * this.dx + this.dz * this.dz) * 4;
+        this.dx = Math.cos(this.angle + this.cr) * this.radius;
+        
+        this.zIndex = -dis;
+        
+        this.scaleRatio = this.fov / (this.fov + (dis * 5));
+        this.dx = this.dx * this.scaleRatio;
+        this.scale = this.scaleRatio * this.size;
+        
+        // Store for z-sorting and weapon targeting
+        return {
+            x: this.dx + this.camera.hW,
+            y: this.dy,
+            scale: this.scale,
+            color: this.color,
+            zIndex: this.zIndex,
+            distance: dis,
+            npc: this
+        };
     }
 }

@@ -22,6 +22,24 @@ function createGameLoop(game, W, H) {
         // Update camera
         game.camera.loop();
         
+        // Clean up dead NPCs periodically (every ~100 frames = ~1.6 seconds at 60fps)
+        if (!gameLoop.frameCount) gameLoop.frameCount = 0;
+        gameLoop.frameCount++;
+        if (gameLoop.frameCount % 100 === 0) {
+            const beforeCount = game.npcs.length;
+            game.npcs = game.npcs.filter(npc => !npc.isDead);
+            const afterCount = game.npcs.length;
+            
+            // Also clean up 2D renderer
+            if (game.map2DRenderer && game.map2DRenderer.npc2D) {
+                game.map2DRenderer.npc2D.removeDeadNPCs();
+            }
+            
+            if (beforeCount !== afterCount) {
+                console.log(`Cleaned up ${beforeCount - afterCount} dead NPCs (${afterCount} remaining)`);
+            }
+        }
+        
         // Render 2D map
         if (game.map2DRenderer) {
             game.map2DRenderer.render();

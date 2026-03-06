@@ -2,6 +2,8 @@
 const helpers = {
     radians: (deg) => deg * Math.PI / 180,
     
+    degrees: (rad) => rad * 180 / Math.PI,
+    
     random: (max) => Math.random() * max,
     
     randomColor: () => {

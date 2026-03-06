@@ -29,8 +29,13 @@ class NPC2DRenderer {
             return; // No NPCs to render
         }
         
-        // Filter out any null/undefined NPCs (defensive programming)
-        const validNPCs = this.npcs.filter(npc => npc && typeof npc.x === 'number' && typeof npc.y === 'number');
+        // Filter out any null/undefined NPCs and dead NPCs (defensive programming)
+        const validNPCs = this.npcs.filter(npc => 
+            npc && 
+            typeof npc.x === 'number' && 
+            typeof npc.y === 'number' && 
+            !npc.isDead // Skip dead NPCs to match 3D view
+        );
         
         for (let npc of validNPCs) {
             // Read current position from NPC (live data)
@@ -44,5 +49,13 @@ class NPC2DRenderer {
      */
     clear() {
         this.npcs = [];
+    }
+
+    /**
+     * Remove dead NPCs from the render list
+     * Synchronizes with the main game.npcs array
+     */
+    removeDeadNPCs() {
+        this.npcs = this.npcs.filter(npc => npc && !npc.isDead);
     }
 }
