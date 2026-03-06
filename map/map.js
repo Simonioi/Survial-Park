@@ -28,7 +28,13 @@
         npcs: [],
         map2DRenderer: null,
         keys: {},
-        animationId: null
+        animationId: null,
+        isMouseDown: false,
+        score: {
+            kills: 0,
+            shots: 0
+        },
+        weapon: null
     };
 
     // Initialize game
@@ -75,6 +81,15 @@
     function startGame() {
         // Create camera (from camera.js)
         game.camera = new Camera(game, W, H, hW, hH, TSPEED, WSPEED);
+
+        // Initialize isolated weapon modules when present.
+        if (typeof createWeaponState === 'function') {
+            game.weapon = createWeaponState();
+        }
+
+        if (typeof setupWeaponInput === 'function') {
+            setupWeaponInput(game);
+        }
         
         // Initialize 2D map renderer (from 2D map folder)
         game.map2DRenderer = new Map2DRenderer(game);

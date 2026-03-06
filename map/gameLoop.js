@@ -4,6 +4,8 @@
  */
 function createGameLoop(game, W, H) {
     function gameLoop() {
+        const now = performance.now();
+
         // Update camera
         game.camera.loop();
         
@@ -29,6 +31,11 @@ function createGameLoop(game, W, H) {
                 renderData.push(data);
             }
         }
+
+        // Weapon update uses projected NPCs for center-screen hitscan.
+        if (game.weapon && typeof updateWeaponSystem === 'function') {
+            updateWeaponSystem(game, renderData, now);
+        }
         
         // Sort by z-index (furthest first)
         renderData.sort((a, b) => a.zIndex - b.zIndex);
@@ -36,6 +43,14 @@ function createGameLoop(game, W, H) {
         // Render NPCs
         for (let data of renderData) {
             draw.circle(game.ctxNPC, data.x, data.y, data.scale, data.color);
+        }
+
+        if (game.weapon && typeof drawWeaponCrosshair === 'function') {
+            drawWeaponCrosshair(game, now);
+        }
+
+        if (game.weapon && typeof drawWeaponOverlay === 'function') {
+            drawWeaponOverlay(game, W, H, now);
         }
         
         game.animationId = requestAnimationFrame(gameLoop);
