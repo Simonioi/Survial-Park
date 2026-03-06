@@ -30,11 +30,6 @@ class Camera2DRenderer {
             this.calcPoint(this.camera.x, this.camera.y, d - 80, 10)
         ], '#000000', 'fill');
         
-        // Draw view circle (aligned with 3D perspective)
-        const c = this.calcPoint(this.camera.x, this.camera.y, d - 90, this.camera.view.r);
-        draw.circle(ctx, c[0], c[1], this.camera.view.r, '#FF0000', 0.5);
-    }
-
     calcPoint(x, y, d, r) {
         const a = helpers.radians(d);
         x = x + Math.cos(a) * r;

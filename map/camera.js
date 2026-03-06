@@ -51,7 +51,7 @@ class Camera {
         if (this.d < 0) this.d = 360;
         
         // Update view position for collision detection (aligned with 3D view)
-        const a = helpers.radians(this.d - 90);
+        const a = helpers.radians(this.d + 90);
         this.view.x = this.x + Math.cos(a) * this.view.r;
         this.view.y = this.y + Math.sin(a) * this.view.r;
     }
