@@ -3,6 +3,19 @@
  * Handles the update and render cycle for the game
  */
 function createGameLoop(game, W, H) {
+    // Load NPC image for 3D rendering
+    const npcImage = new Image();
+    let npcImageLoaded = false;
+    
+    npcImage.onload = () => {
+        npcImageLoaded = true;
+        console.log('NPC 3D image (ugly.png) loaded successfully');
+    };
+    npcImage.onerror = () => {
+        console.error('Failed to load ugly.png for 3D NPCs');
+    };
+    npcImage.src = 'ugly.png';
+    
     function gameLoop() {
         const now = performance.now();
 
@@ -41,8 +54,23 @@ function createGameLoop(game, W, H) {
         renderData.sort((a, b) => a.zIndex - b.zIndex);
         
         // Render NPCs
-        for (let data of renderData) {
-            draw.circle(game.ctxNPC, data.x, data.y, data.scale, data.color);
+        if (npcImageLoaded) {
+            // Render NPCs as images
+            for (let data of renderData) {
+                const imageSize = data.scale * 2; // Scale the image based on distance
+                game.ctxNPC.drawImage(
+                    npcImage,
+                    data.x - imageSize / 2,
+                    data.y - imageSize / 2,
+                    imageSize,
+                    imageSize
+                );
+            }
+        } else {
+            // Fallback to circles while image loads
+            for (let data of renderData) {
+                draw.circle(game.ctxNPC, data.x, data.y, data.scale, data.color);
+            }
         }
 
         if (game.weapon && typeof drawWeaponCrosshair === 'function') {

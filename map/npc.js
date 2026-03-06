@@ -19,7 +19,7 @@ class NPC {
         this.fov = this.camera.fov;
         this.scale = 0;
         this.angle = 0;
-        this.color = helpers.randomColor();
+        this.color = '#FF6600'; // Orange color for 3D representation
         this.radius = 0;
         this.scaleRatio = 0;
         this.size = 100;
@@ -36,7 +36,7 @@ class NPC {
             this.y, 
             5
         )) {
-            this.cr = helpers.radians(this.camera.d);
+            this.cr = helpers.radians(-this.camera.d); // Negate for correct 3D rotation direction
             this.dx = this.x - this.camera.x;
             this.dz = this.y - this.camera.y;
             this.dy = this.hH;

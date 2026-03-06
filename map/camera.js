@@ -25,17 +25,17 @@ class Camera {
         document.addEventListener('keydown', (e) => {
             this.game.keys[e.code] = true;
             
-            if (e.code === 'ArrowLeft') this.d += this.TSPEED;
-            if (e.code === 'ArrowRight') this.d -= this.TSPEED;
+            if (e.code === 'ArrowLeft') this.d -= this.TSPEED;
+            if (e.code === 'ArrowRight') this.d += this.TSPEED;
             if (e.code === 'ArrowUp') {
                 // Move in the direction the camera is facing
-                this.x += Math.sin(helpers.radians(this.d)) * this.WSPEED;
-                this.y += Math.cos(helpers.radians(this.d)) * this.WSPEED;
+                this.x -= Math.sin(helpers.radians(this.d)) * this.WSPEED;
+                this.y -= Math.cos(helpers.radians(this.d)) * this.WSPEED;
             }
             if (e.code === 'ArrowDown') {
                 // Move backward from the direction the camera is facing
-                this.x -= Math.sin(helpers.radians(this.d)) * this.WSPEED;
-                this.y -= Math.cos(helpers.radians(this.d)) * this.WSPEED;
+                this.x += Math.sin(helpers.radians(this.d)) * this.WSPEED;
+                this.y += Math.cos(helpers.radians(this.d)) * this.WSPEED;
             }
         });
 

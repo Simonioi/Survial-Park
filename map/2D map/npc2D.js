@@ -20,7 +20,7 @@ class NPC2DRenderer {
     }
 
     /**
-     * Render all NPCs on the 2D map
+     * Render all NPCs on the 2D map as colored dots
      * @param {CanvasRenderingContext2D} ctx - 2D canvas context
      */
     render(ctx) {
