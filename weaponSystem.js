@@ -74,7 +74,9 @@ function updateWeaponSystem(game, renderData, now) {
 
     const target = selectWeaponTarget(game, renderData);
     if (target && target.npc) {
-        target.npc.hit();
-        game.score.kills += 1;
+        const killed = target.npc.hit();
+        if (killed) {
+            game.score.kills += 1;
+        }
     }
 }
