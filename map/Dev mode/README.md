@@ -41,7 +41,7 @@ Provides the DevMode class with functions:
 ### Accessing Dev Mode
 Click the "🛠️ Dev Mode" button on the main interface, or navigate directly to:
 ```
-Dev mode/devMode.html
+map/Dev mode/devMode.html
 ```
 
 ### Auto-Detection
@@ -49,3 +49,16 @@ When dev mode is loaded, the game automatically:
 - Detects the `initDevMode` function
 - Skips automatic NPC spawning
 - Enables manual spawn controls
+
+### Normal Mode
+When loading the regular `index.html`:
+- Automatically spawns 10 NPCs on start
+- Dev mode functions are not loaded
+- Standard gameplay
+
+## Technical Notes
+
+- Dev mode shares the same game engine as normal mode
+- Both maps render from the same game state
+- NPCs are synchronized between views
+- All game mechanics (weapon, camera, etc.) work normally in dev mode

@@ -6,9 +6,8 @@
  * @param {Array} coords - Wall segment coordinates [x1, y1, x2, y2]
  * @param {Number} height - Wall height (default 100)
  * @param {String} color - Wall color (default '#8B7355')
- * @param {Image} texture - Optional texture image to use instead of color
  */   
-function Wall(game, coords, height = 100, color = '#8B7355', texture = null) {
+function Wall(game, coords, height = 100, color = '#8B7355') {
     this.game = game;
     this.x1 = coords[0];
     this.y1 = coords[1];
@@ -16,7 +15,6 @@ function Wall(game, coords, height = 100, color = '#8B7355', texture = null) {
     this.y2 = coords[3];
     this.height = height;
     this.color = color;
-    this.texture = texture;
     this.once = false;
 }
 
@@ -86,39 +84,7 @@ Wall.prototype.loop = function() {
         zIndex: -avgDist,
         render: (ctx) => {
             if (points[0] && points[1] && points[2] && points[3]) {
-                ctx.save();
-                
-                // Create clipping path for the wall polygon
-                ctx.beginPath();
-                ctx.moveTo(points[0].x, points[0].y);
-                ctx.lineTo(points[1].x, points[1].y);
-                ctx.lineTo(points[2].x, points[2].y);
-                ctx.lineTo(points[3].x, points[3].y);
-                ctx.closePath();
-                ctx.clip();
-                
-                // If texture is available and loaded, draw it
-                if (this.texture && this.texture.complete && this.texture.naturalHeight !== 0) {
-                    // Calculate bounding box of the wall
-                    const minX = Math.min(points[0].x, points[1].x, points[2].x, points[3].x);
-                    const maxX = Math.max(points[0].x, points[1].x, points[2].x, points[3].x);
-                    const minY = Math.min(points[0].y, points[1].y, points[2].y, points[3].y);
-                    const maxY = Math.max(points[0].y, points[1].y, points[2].y, points[3].y);
-                    
-                    const width = maxX - minX;
-                    const height = maxY - minY;
-                    
-                    // Draw texture to fill the wall
-                    ctx.drawImage(this.texture, minX, minY, width, height);
-                } else {
-                    // Fallback to solid color
-                    ctx.fillStyle = this.color;
-                    ctx.fill();
-                }
-                
-                ctx.restore();
-                
-                // Draw outline
+                ctx.fillStyle = this.color;
                 ctx.strokeStyle = '#000000';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
@@ -127,6 +93,7 @@ Wall.prototype.loop = function() {
                 ctx.lineTo(points[2].x, points[2].y);
                 ctx.lineTo(points[3].x, points[3].y);
                 ctx.closePath();
+                ctx.fill();
                 ctx.stroke();
             }
         }
@@ -151,7 +118,7 @@ function project3DTo2D(point, camera, screenWidth, screenHeight) {
     let dz = point.z - camera.y;
     
     // Rotate point based on camera direction
-    const angle = helpers.radians(-camera.d);
+    const angle = math.radians(-camera.d);
     const cos = Math.cos(angle);
     const sin = Math.sin(angle);
     
