@@ -26,7 +26,6 @@
         ctxNPC: null,
         camera: null,
         npcs: [],
-        floor: null,
         map2DRenderer: null,
         keys: {},
         animationId: null,
@@ -62,120 +61,21 @@
         game.canvasNPC = canvasNPC;
         game.ctxNPC = canvasNPC.getContext('2d');
         
-        // Initialize floor
-        game.floor = new Floor(game);
-        
-        // Preload floor background image
-        game.floor.load('../Ressource/black_bg_test.jpg', (success) => {
-            startGame();
-        });
-    }
-    
-    function loadWallTexture() {
-        console.log('Loading wall texture...');
-        const wallTexture = new Image();
-        wallTexture.onload = () => {
-            console.log('Wall texture (tree_wall.jpg) loaded successfully!');
-            game.wallTexture = wallTexture;
+        // Preload background image
+        console.log('Loading background image...');
+        const bgImage = new Image();
+        bgImage.onload = () => {
+            console.log('Background image loaded successfully!');
+            game.backgroundImage = bgImage;
             startGame();
         };
-        wallTexture.onerror = (e) => {
-            console.error('Failed to load wall texture:', e);
-            console.log('Starting game without wall texture');
-            game.wallTexture = null;
+        bgImage.onerror = (e) => {
+            console.error('Failed to load background image:', e);
+            console.log('Starting game without background');
+            game.backgroundImage = null;
             startGame();
         };
-        wallTexture.src = '../Ressource/tree_wall.jpg';
-    }
-    
-    function loadWallTexture() {
-        console.log('Loading wall texture...');
-        const wallTexture = new Image();
-        wallTexture.onload = () => {
-            console.log('Wall texture (tree_wall.jpg) loaded successfully!');
-            game.wallTexture = wallTexture;
-            startGame();
-        };
-        wallTexture.onerror = (e) => {
-            console.error('Failed to load wall texture:', e);
-            console.log('Starting game without wall texture');
-            game.wallTexture = null;
-            startGame();
-        };
-        wallTexture.src = '../Ressource/tree_wall.jpg';
-    }
-    
-    function createWalls() {
-        // Create some sample walls with tree texture
-        const wallHeight = 100;
-        
-        // Create boundary walls around the edges (camera starts at center so these won't block view)
-        
-        // Top boundary
-        game.walls.push(new Wall(
-            game,
-            [50, 50, 550, 50],
-            wallHeight,
-            '#8B7355',
-            game.wallTexture
-        ));
-        
-        // Bottom boundary
-        game.walls.push(new Wall(
-            game,
-            [50, 550, 550, 550],
-            wallHeight,
-            '#8B7355',
-            game.wallTexture
-        ));
-        
-        // Left boundary
-        game.walls.push(new Wall(
-            game,
-            [50, 50, 50, 550],
-            wallHeight,
-            '#8B7355',
-            game.wallTexture
-        ));
-        
-        // Right boundary
-        game.walls.push(new Wall(
-            game,
-            [550, 50, 550, 550],
-            wallHeight,
-            '#8B7355',
-            game.wallTexture
-        ));
-        
-        // Interior walls creating corridors (away from center starting position)
-        // Horizontal wall in upper area
-        game.walls.push(new Wall(
-            game,
-            [100, 150, 250, 150],
-            wallHeight,
-            '#8B7355',
-            game.wallTexture
-        ));
-        
-        // Vertical wall on left side
-        game.walls.push(new Wall(
-            game,
-            [150, 200, 150, 350],
-            wallHeight,
-            '#8B7355',
-            game.wallTexture
-        ));
-        
-        // Horizontal wall in lower area
-        game.walls.push(new Wall(
-            game,
-            [350, 450, 500, 450],
-            wallHeight,
-            '#8B7355',
-            game.wallTexture
-        ));
-        
-        console.log(`✓ Created ${game.walls.length} walls with tree texture`);
+        bgImage.src = 'black_bg_test.jpg';
     }
     
     function startGame() {
