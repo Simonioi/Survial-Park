@@ -24,9 +24,36 @@ class NPC {
         this.scaleRatio = 0;
         this.size = 100;
         this.zIndex = 0;
+        
+        // Health system - mob dies after 2 hits
+        this.hpId = hp.createEntity(`Mob_${i}`, 2);
+        this.isDead = false;
+    }
+
+    /**
+     * Hit the mob (used by weapon system)
+     * @returns {boolean} True if mob died from this hit
+     */
+    hit() {
+        if (this.isDead) return false;
+        
+        hp.damage(this.hpId, 1);
+        
+        if (hp.isDead(this.hpId)) {
+            this.isDead = true;
+            console.log(`Mob ${this.i} killed!`);
+            return true;
+        }
+        
+        return false;
     }
 
     loop() {
+        // Don't render dead mobs
+        if (this.isDead) {
+            return null;
+        }
+        
         // Check if NPC is outside camera view
         if (!helpers.checkCircleCollision(
             this.camera.view.x, 
@@ -51,13 +78,15 @@ class NPC {
             this.dx = this.dx * this.scaleRatio;
             this.scale = this.scaleRatio * this.size;
             
-            // Store for z-sorting
+            // Store for z-sorting and weapon targeting
             return {
                 x: this.dx + this.camera.hW,
                 y: this.dy,
                 scale: this.scale,
                 color: this.color,
-                zIndex: this.zIndex
+                zIndex: this.zIndex,
+                distance: dis,
+                npc: this
             };
         }
         return null;
