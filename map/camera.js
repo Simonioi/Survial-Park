@@ -25,17 +25,17 @@ class Camera {
         document.addEventListener('keydown', (e) => {
             this.game.keys[e.code] = true;
             
-            // Controls are calibrated to the 3D camera view perspective
+            // Camera controls: rotation and forward/backward movement
             if (e.code === 'ArrowLeft') this.d += this.TSPEED;
             if (e.code === 'ArrowRight') this.d -= this.TSPEED;
             if (e.code === 'ArrowUp') {
-                // Move forward in camera's facing direction (3D perspective)
-                this.x -= Math.sin(helpers.radians(this.d)) * this.WSPEED;
+                // Move forward in camera's facing direction
+                this.x += Math.sin(helpers.radians(this.d)) * this.WSPEED;
                 this.y -= Math.cos(helpers.radians(this.d)) * this.WSPEED;
             }
             if (e.code === 'ArrowDown') {
-                // Move backward from camera's facing direction (3D perspective)
-                this.x += Math.sin(helpers.radians(this.d)) * this.WSPEED;
+                // Move backward from camera's facing direction
+                this.x -= Math.sin(helpers.radians(this.d)) * this.WSPEED;
                 this.y += Math.cos(helpers.radians(this.d)) * this.WSPEED;
             }
         });
