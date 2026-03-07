@@ -1,11 +1,6 @@
 /**
  * Main Game Entry Point
  * Coordinates all game modules and initializes the game
- * * Dependencies (load in this order):
- * 1. helpers.js - Math and drawing utilities
- * 2. camera.js - Camera class
- * 3. npc.js - NPC class
- * 4. gameLoop.js - Main game loop
  */
 (function() {
     'use strict';
@@ -15,7 +10,7 @@
     const hW = W / 2; // half-width and half-height for centering
     const hH = H / 2; // half-width and half-height for centering
     const TSPEED = 3; // turning speed
-    const WSPEED = 5; // walking speed
+    const WSPEED = 3; // walking speed (réduit pour un déplacement moins rapide)
 
     // Game state
     const game = {
@@ -25,7 +20,9 @@
         ctxNPC: null,
         camera: null,
         npcs: [],
+        walls: [],
         floor: null,
+        wallTexture: null,
         map2DRenderer: null,
         keys: {},
         animationId: null,
@@ -38,7 +35,7 @@
     };
 
     // Initialize game
-   function init() {
+    function init() {
         // Setup canvas for 2D view
         const canvas2D = document.getElementById('target2');
         if (!canvas2D) {
@@ -64,114 +61,132 @@
         // Initialize floor
         game.floor = new Floor(game);
 
-        // --- NEW: Check if we are in Dev Mode to adjust file paths ---
-        const isDevMode = window.location.href.includes('devMode');
-        const basePath = isDevMode ? '../' : '';
-        
-        // Preload floor background image
-        // --- MODIFIED FOR MENU SYSTEM & DEV MODE PATH FIX ---
-        // Uses basePath to find the image whether we are in index.html (root) or devMode.html (folder)
-        game.floor.load(basePath + 'Ressource/black_bg_test.jpg', (success) => {
-            if (isDevMode) {
-                // If in Dev Mode, start the game immediately (no menu here)
-                startGame();
-            } else {
-                // Instead of starting the game immediately, we pause it and link it to the PLAY button in menu.js
-                window.demarrerLeJeu = startGame;
-                Logger.info("Menu ready! Waiting for player to click PLAY...");
-            }
-        });
-    }
-    // --- MODIFIED --- 
-    // Removed the duplicate loadWallTexture() function that was here before
-    function loadWallTexture() {
-        Logger.debug('Loading wall texture...');
-        const wallTexture = new Image();
+        // Wait for floor and wall textures before starting the game loop.
+        let pendingAssets = 2;
+        let hasStarted = false;
 
-        // --- NEW: Check if we are in Dev Mode to adjust file paths ---
+        // --- MODIF POUR LE MENU ---
         const isDevMode = window.location.href.includes('devMode');
-        const basePath = isDevMode ? '../' : '';
-        
-        // --- MODIFIED DEV MODE PATH FIX ---
-        // Added basePath so the image loads correctly in both normal and dev mode
-        Logger.wrapImageLoad(wallTexture, 'Wall texture (tree_wall.jpg)', basePath + 'Ressource/tree_wall.jpg',
-            () => {
-                game.wallTexture = wallTexture;
-                startGame();
-            },
-            (e) => {
+
+        const onAssetReady = () => {
+            pendingAssets -= 1;
+            if (!hasStarted && pendingAssets <= 0) {
+                hasStarted = true;
+                
+                // --- CONNEXION AU MENU OU LANCEMENT AUTO EN DEV MODE ---
+                if (isDevMode) {
+                    startGame(); 
+                } else {
+                    window.demarrerLeJeu = startGame;
+                    Logger.info("Ressources chargées. En attente du bouton JOUER...");
+                }
+            }
+        };
+
+        loadFloorTexture(onAssetReady);
+        loadWallTexture(onAssetReady);
+    }
+
+    function loadFloorTexture(onDone) {
+        const floorTextureCandidates = [
+            'Ressource/Floor dirt.jpg',
+            '../Ressource/Floor dirt.jpg'
+        ];
+
+        const tryLoad = (index) => {
+            if (index >= floorTextureCandidates.length) {
+                Logger.warn('Floor texture not found, starting with solid fallback');
+                if (onDone) onDone();
+                return;
+            }
+
+            const path = floorTextureCandidates[index];
+            game.floor.load(path, (success) => {
+                if (success) {
+                    if (onDone) onDone();
+                } else {
+                    tryLoad(index + 1);
+                }
+            });
+        };
+
+        tryLoad(0);
+    }
+    
+    function loadWallTexture(onDone) {
+        Logger.debug('Loading wall texture...');
+        const wallTextureCandidates = [
+            'Ressource/tree_wall.jpg',
+            '../Ressource/tree_wall.jpg'
+        ];
+
+        const tryLoad = (index) => {
+            if (index >= wallTextureCandidates.length) {
                 Logger.info('Starting game without wall texture');
                 game.wallTexture = null;
-                startGame();
+                if (onDone) onDone();
+                return;
             }
-        );
+
+            const wallTexture = new Image();
+            const path = wallTextureCandidates[index];
+            Logger.wrapImageLoad(wallTexture, 'Wall texture (tree_wall.jpg)', path,
+                () => {
+                    game.wallTexture = wallTexture;
+                    if (onDone) onDone();
+                },
+                () => {
+                    tryLoad(index + 1);
+                }
+            );
+        };
+
+        tryLoad(0);
     }
     
     function createWalls() {
-        // Create some sample walls with tree texture
+        // Build a clean retro FPS corridor layout.
         const wallHeight = 100;
-        
-        // Create boundary walls around the edges (camera starts at center so these won't block view)
-        
-        // Top boundary
+
+        // Reset existing walls before creating the corridor.
+        game.walls.length = 0;
+
+        const leftX = 240;
+        const rightX = 360;
+        const nearY = 540;
+        const farY = 60;
+
+        // Left wall
         game.walls.push(new Wall(
             game,
-            [50, 50, 550, 50],
+            [leftX, farY, leftX, nearY],
             wallHeight,
             '#8B7355',
             game.wallTexture
         ));
-        
-        // Bottom boundary
+
+        // Right wall
         game.walls.push(new Wall(
             game,
-            [50, 550, 550, 550],
+            [rightX, farY, rightX, nearY],
             wallHeight,
             '#8B7355',
             game.wallTexture
         ));
-        
-        // Left boundary
+
+        // Corridor end wall (front)
         game.walls.push(new Wall(
             game,
-            [50, 50, 50, 550],
+            [leftX, farY, rightX, farY],
             wallHeight,
             '#8B7355',
             game.wallTexture
         ));
-        
-        // Right boundary
+
+        // Corridor back wall
         game.walls.push(new Wall(
             game,
-            [550, 50, 550, 550],
-            wallHeight,
-            '#8B7355',
-            game.wallTexture
-        ));
-        
-        // Interior walls creating corridors (away from center starting position)
-        // Horizontal wall in upper area
-        game.walls.push(new Wall(
-            game,
-            [100, 150, 250, 150],
-            wallHeight,
-            '#8B7355',
-            game.wallTexture
-        ));
-        
-        // Vertical wall on left side
-        game.walls.push(new Wall(
-            game,
-            [150, 200, 150, 350],
-            wallHeight,
-            '#8B7355',
-            game.wallTexture
-        ));
-        
-        // Horizontal wall in lower area
-        game.walls.push(new Wall(
-            game,
-            [350, 450, 500, 450],
+            [leftX, nearY, rightX, nearY],
             wallHeight,
             '#8B7355',
             game.wallTexture
@@ -183,6 +198,9 @@
     function startGame() {
         // Create camera (from camera.js)
         game.camera = new Camera(game, W, H, hW, hH, TSPEED, WSPEED);
+
+        // Create textured walls for the 3D corridor feel.
+        createWalls();
 
         // Initialize isolated weapon modules when present.
         if (typeof createWeaponState === 'function') {
