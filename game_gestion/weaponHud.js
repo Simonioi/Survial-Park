@@ -15,23 +15,43 @@ function ensureWeaponSpriteLoaded() {
     if (weaponHudAssets.triedLoading) return;
 
     weaponHudAssets.triedLoading = true;
-    
+
+    const loadWithFallback = (img, label, candidates, onSuccess) => {
+        const tryLoad = (index) => {
+            if (index >= candidates.length) {
+                weaponHudAssets.loadFailed = true;
+                return;
+            }
+
+            Logger.wrapImageLoad(img, label, candidates[index],
+                () => { onSuccess(); },
+                () => { tryLoad(index + 1); }
+            );
+        };
+
+        tryLoad(0);
+    };
+
     const neutralImg = new Image();
-    Logger.wrapImageLoad(neutralImg, 'weapon sprite (neutral)', '../Ressource/doom pistol 1.png',
+    loadWithFallback(
+        neutralImg,
+        'weapon sprite (neutral)',
+        ['Ressource/doom pistol 1.png', '../Ressource/doom pistol 1.png'],
         () => {
             weaponHudAssets.neutralLoaded = true;
             weaponHudAssets.pistolNeutral = neutralImg;
-        },
-        () => { weaponHudAssets.loadFailed = true; }
+        }
     );
 
     const fireImg = new Image();
-    Logger.wrapImageLoad(fireImg, 'weapon sprite (fire)', '../Ressource/doom pistol 2.png',
+    loadWithFallback(
+        fireImg,
+        'weapon sprite (fire)',
+        ['Ressource/doom pistol 2.png', '../Ressource/doom pistol 2.png'],
         () => {
             weaponHudAssets.fireLoaded = true;
             weaponHudAssets.pistolFire = fireImg;
-        },
-        () => { weaponHudAssets.loadFailed = true; }
+        }
     );
 }
 
