@@ -17,25 +17,20 @@ class Floor {
      * @param {Function} callback - Called when loading completes (success or failure)
      */
     load(imagePath, callback) {
-        console.log(`Loading floor background: ${imagePath}...`);
-        
+        Logger.debug(`Loading floor background: ${imagePath}...`);
         const bgImage = new Image();
-        
-        bgImage.onload = () => {
-            console.log('Floor background loaded successfully!');
-            this.backgroundImage = bgImage;
-            this.loaded = true;
-            if (callback) callback(true);
-        };
-        
-        bgImage.onerror = (e) => {
-            console.error('Failed to load floor background:', e);
-            console.log('Will use solid color fallback');
-            this.failed = true;
-            if (callback) callback(false);
-        };
-        
-        bgImage.src = imagePath;
+        Logger.wrapImageLoad(bgImage, 'Floor background', imagePath,
+            () => {
+                this.backgroundImage = bgImage;
+                this.loaded = true;
+                if (callback) callback(true);
+            },
+            (e) => {
+                Logger.info('Will use solid color fallback');
+                this.failed = true;
+                if (callback) callback(false);
+            }
+        );
     }
 
     /**
@@ -63,7 +58,7 @@ class Floor {
         if (image && image.complete && image.naturalHeight !== 0) {
             this.backgroundImage = image;
             this.loaded = true;
-            console.log('Floor background set successfully');
+            Logger.info('Floor background set successfully');
         }
     }
 }

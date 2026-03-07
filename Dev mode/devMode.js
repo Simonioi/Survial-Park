@@ -25,7 +25,7 @@ class DevMode {
             this.game.map2DRenderer.addNPC(npc);
         }
         
-        console.log(`✓ Spawned NPC #${npcIndex} at (${Math.round(npc.x)}, ${Math.round(npc.y)}) - Visible in 3D and 2D maps`);
+        Logger.npcs.spawned(npcIndex, npc.x, npc.y);
         this.updateNPCCount();
         this.syncToLocalStorage();
         return npc;
@@ -50,7 +50,7 @@ class DevMode {
             this.game.map2DRenderer.addNPC(npc);
         }
         
-        console.log(`✓ Spawned NPC #${npcIndex} at (${Math.round(x)}, ${Math.round(y)}) - Visible in 3D and 2D maps`);
+        Logger.npcs.spawned(npcIndex, x, y);
         this.updateNPCCount();
         this.syncToLocalStorage();
         return npc;
@@ -62,21 +62,19 @@ class DevMode {
     clearAllNPCs() {
         const count = this.game.npcs.length;
         
-        console.log(`Clearing ${count} NPCs...`);
-        console.log('Before clear - game.npcs length:', this.game.npcs.length);
-        console.log('Before clear - 2D renderer NPCs:', this.game.map2DRenderer?.npc2D?.npcs?.length);
+        Logger.devMode.clearing(count);
+        Logger.devMode.beforeClear(this.game.npcs.length, this.game.map2DRenderer?.npc2D?.npcs?.length);
         
         // Clear from game (3D view)
-        this.game.npcs.length = 0; // Clear array in place instead of reassigning
+        this.game.npcs.length = 0;
         
         // Clear from 2D map renderer
         if (this.game.map2DRenderer && this.game.map2DRenderer.npc2D) {
-            this.game.map2DRenderer.npc2D.npcs.length = 0; // Clear array in place
+            this.game.map2DRenderer.npc2D.npcs.length = 0;
         }
         
-        console.log('After clear - game.npcs length:', this.game.npcs.length);
-        console.log('After clear - 2D renderer NPCs:', this.game.map2DRenderer?.npc2D?.npcs?.length);
-        console.log(`✓ Cleared ${count} NPCs from all views (3D map, 2D map, dev mode)`);
+        Logger.devMode.afterClear(this.game.npcs.length, this.game.map2DRenderer?.npc2D?.npcs?.length);
+        Logger.npcs.cleared(count);
         
         this.syncToLocalStorage();
         this.updateNPCCount();
@@ -99,7 +97,7 @@ class DevMode {
         if (window.SaveSystem) {
             SaveSystem.saveGame(this.game);
         } else {
-            console.warn('SaveSystem not loaded, falling back to direct save');
+            Logger.warn('SaveSystem not loaded, falling back to direct save');
             const npcData = this.game.npcs.map(npc => ({
                 x: npc.x,
                 y: npc.y
@@ -119,10 +117,10 @@ class DevMode {
             SaveSystem.loadGame(this.game, W, H, hH);
             this.updateNPCCount();
         } else {
-            console.warn('SaveSystem not loaded, falling back to direct load');
+            Logger.warn('SaveSystem not loaded, falling back to direct load');
             const npcData = localStorage.getItem('survivalPark_npcs');
             if (!npcData) {
-                console.log('No NPCs in localStorage to load');
+                Logger.storage.missing('NPCs to load');
                 return;
             }
             
@@ -150,10 +148,10 @@ class DevMode {
                     }
                 });
                 
-                console.log(`✓ Loaded ${npcs.length} NPCs from localStorage`);
+                Logger.npcs.loaded(npcs.length);
                 this.updateNPCCount();
             } catch (error) {
-                console.error('Failed to load NPCs from localStorage:', error);
+                Logger.storage.failed('load', 'NPCs', error);
             }
         }
     }
@@ -183,7 +181,7 @@ function initDevMode(game) {
     window.addEventListener('beforeunload', () => {
         if (window.devMode && window.devMode.game) {
             window.devMode.syncToLocalStorage();
-            console.log('Auto-saved game state on page unload');
+            Logger.autoSave.onUnload();
         }
     });
     
@@ -194,8 +192,8 @@ function initDevMode(game) {
         }
     }, 10000);
     
-    console.log('Dev Mode initialized - Click "Spawn NPC" to add NPCs manually');
-    console.log('Auto-save enabled: saves on page unload and every 10 seconds');
+    Logger.initialized('Dev Mode - Click "Spawn NPC" to add NPCs manually');
+    Logger.autoSave.enabled();
 }
 
 function spawnNPC() {

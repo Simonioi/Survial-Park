@@ -41,7 +41,7 @@ class NPC {
         
         if (hp.isDead(this.hpId)) {
             this.isDead = true;
-            console.log(`Mob ${this.i} killed!`);
+            Logger.npcs.killed(this.i);
             return true;
         }
         

@@ -7,14 +7,9 @@ function createGameLoop(game, W, H) {
     const npcImage = new Image();
     let npcImageLoaded = false;
     
-    npcImage.onload = () => {
-        npcImageLoaded = true;
-        console.log('NPC 3D image (ugly.png) loaded successfully');
-    };
-    npcImage.onerror = () => {
-        console.error('Failed to load ugly.png for 3D NPCs');
-    };
-    npcImage.src = '../Ressource/ugly.png';
+    Logger.wrapImageLoad(npcImage, 'NPC 3D image (ugly.png)', '../Ressource/ugly.png', 
+        () => { npcImageLoaded = true; }
+    );
     
     function gameLoop() {
         const now = performance.now();
@@ -36,7 +31,7 @@ function createGameLoop(game, W, H) {
             }
             
             if (beforeCount !== afterCount) {
-                console.log(`Cleaned up ${beforeCount - afterCount} dead NPCs (${afterCount} remaining)`);
+                Logger.npcs.cleanedUp(beforeCount - afterCount, afterCount);
             }
         }
         

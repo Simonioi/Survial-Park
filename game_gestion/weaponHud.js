@@ -12,32 +12,27 @@ const weaponHudAssets = {
 };
 
 function ensureWeaponSpriteLoaded() {
-    if (weaponHudAssets.triedLoading) {
-        return;
-    }
+    if (weaponHudAssets.triedLoading) return;
 
     weaponHudAssets.triedLoading = true;
+    
     const neutralImg = new Image();
-    neutralImg.onload = () => {
-        weaponHudAssets.neutralLoaded = true;
-        weaponHudAssets.pistolNeutral = neutralImg;
-    };
-    neutralImg.onerror = () => {
-        weaponHudAssets.loadFailed = true;
-        console.error('Failed to load weapon sprite: ../Ressource/doom pistol 1.png');
-    };
-    neutralImg.src = '../Ressource/doom pistol 1.png';
+    Logger.wrapImageLoad(neutralImg, 'weapon sprite (neutral)', '../Ressource/doom pistol 1.png',
+        () => {
+            weaponHudAssets.neutralLoaded = true;
+            weaponHudAssets.pistolNeutral = neutralImg;
+        },
+        () => { weaponHudAssets.loadFailed = true; }
+    );
 
     const fireImg = new Image();
-    fireImg.onload = () => {
-        weaponHudAssets.fireLoaded = true;
-        weaponHudAssets.pistolFire = fireImg;
-    };
-    fireImg.onerror = () => {
-        weaponHudAssets.loadFailed = true;
-        console.error('Failed to load weapon sprite: ../Ressource/doom pistol 2.png');
-    };
-    fireImg.src = '../Ressource/doom pistol 2.png';
+    Logger.wrapImageLoad(fireImg, 'weapon sprite (fire)', '../Ressource/doom pistol 2.png',
+        () => {
+            weaponHudAssets.fireLoaded = true;
+            weaponHudAssets.pistolFire = fireImg;
+        },
+        () => { weaponHudAssets.loadFailed = true; }
+    );
 }
 
 function drawWeaponCrosshair(game, now) {

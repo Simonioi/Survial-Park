@@ -237,7 +237,7 @@
     
     <script>
         // Debug: Log when page starts loading
-        console.log('Dev Mode page loading...');
+        if (window.Logger) Logger.debug('Dev Mode page loading...');
         
         // Update camera info display
         function updateCameraInfo() {
@@ -251,13 +251,13 @@
         
         // Start updating when game loads
         window.addEventListener('load', () => {
-            console.log('Page loaded, waiting for game initialization...');
+            if (window.Logger) Logger.debug('Page loaded, waiting for game initialization...');
             setTimeout(() => {
                 if (window.game) {
-                    console.log('✓ Game object found:', window.game);
+                    if (window.Logger) Logger.info('✓ Game object found:', window.game);
                     updateCameraInfo();
                 } else {
-                    console.error('✗ Game object not found! Check script loading.');
+                    if (window.Logger) Logger.error('✗ Game object not found! Check script loading.');
                 }
             }, 100);
         });
@@ -265,12 +265,15 @@
         // Log when scripts fail to load
         window.addEventListener('error', (e) => {
             if (e.target.tagName === 'SCRIPT') {
-                console.error('Failed to load script:', e.target.src);
+                if (window.Logger) Logger.error('Failed to load script:', e.target.src);
             }
         }, true);
     </script>
     
     <!-- Load scripts in the correct order -->
+    <!-- 0. Logger must be loaded first (used by all modules) -->
+    <script src="../game_gestion/logger.js"></script>
+    
     <!-- 1. Helpers must be loaded first (used by all modules) -->
     <script src="../map/helpers.js"></script>
     
