@@ -7,7 +7,12 @@ function createGameLoop(game, W, H) {
     const npcImage = new Image();
     let npcImageLoaded = false;
     
-    Logger.wrapImageLoad(npcImage, 'NPC 3D image (ugly.png)', '../Ressource/ugly.png', 
+    // --- NEW: Dev Mode path fix for the monster image ---
+    const isDevMode = window.location.href.includes('devMode');
+    const basePath = isDevMode ? '../' : '';
+
+    // We use basePath to load hte image wherever we are in the file
+    Logger.wrapImageLoad(npcImage, 'NPC 3D image (ugly.png)', basePath + 'Ressource/ugly.png', 
         () => { npcImageLoaded = true; }
     );
     
