@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Survival Park - 3D Map Viewer</title>
     
-    <link rel="stylesheet" href="static/style.css">
+   <link rel="stylesheet" href="template/static/style.css">
 </head>
 <body>
 
     <div id="main-menu">
         <h1>SURVIVAL PARK</h1>
-        <button class="menu-btn" onclick="lancerMenu()">▶ JOUER</button>
+        <button class="menu-btn" onclick="lancerMenu()">▶ PLAY</button>
         <button class="menu-btn" onclick="alert('Options bientôt disponibles !')">⚙ OPTIONS</button>
     </div>
 
@@ -34,9 +34,11 @@
                 <li><strong>Arrow Left/Right:</strong> Rotate camera</li>
                 <li><strong>Mouse Left Click / Space:</strong> Fire pistol</li>
             </ul>
-            <div class="button-group">
-                <button onclick="window.location.href='Dev mode/devMode.html'" style="background-color: #cc6600;">🛠️ Dev Mode</button>
-            </div>
+           <div class="button-group">
+            <button onclick="window.location.href='index.html'" style="background-color: #8b0000;"> Main Menu</button>
+            
+            <button onclick="window.location.href='Dev mode/devMode.html'" style="background-color: #cc6600;">🛠️ Dev Mode</button>
+        </div>
         </div>
     </div>
 
