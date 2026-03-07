@@ -38,7 +38,7 @@
     };
 
     // Initialize game
-    function init() {
+   function init() {
         // Setup canvas for 2D view
         const canvas2D = document.getElementById('target2');
         if (!canvas2D) {
@@ -63,28 +63,38 @@
         
         // Initialize floor
         game.floor = new Floor(game);
+
+        // --- NEW: Check if we are in Dev Mode to adjust file paths ---
+        const isDevMode = window.location.href.includes('devMode');
+        const basePath = isDevMode ? '../' : '';
         
         // Preload floor background image
-        // --- MODIFIED FOR MENU SYSTEM & PATH FIX ---
-        // Removed '../' from the path because index.html is now at the root folder
-        game.floor.load('Ressource/black_bg_test.jpg', (success) => {
-            // Instead of starting the game immediately, we pause it and link it to the PLAY button in menu.js
-            // startGame(); 
-            
-            window.demarrerLeJeu = startGame;
-            Logger.info("Menu ready! Waiting for player to click PLAY...");
+        // --- MODIFIED FOR MENU SYSTEM & DEV MODE PATH FIX ---
+        // Uses basePath to find the image whether we are in index.html (root) or devMode.html (folder)
+        game.floor.load(basePath + 'Ressource/black_bg_test.jpg', (success) => {
+            if (isDevMode) {
+                // If in Dev Mode, start the game immediately (no menu here)
+                startGame();
+            } else {
+                // Instead of starting the game immediately, we pause it and link it to the PLAY button in menu.js
+                window.demarrerLeJeu = startGame;
+                Logger.info("Menu ready! Waiting for player to click PLAY...");
+            }
         });
     }
-    
     // --- MODIFIED --- 
     // Removed the duplicate loadWallTexture() function that was here before
     function loadWallTexture() {
         Logger.debug('Loading wall texture...');
         const wallTexture = new Image();
+
+        // --- NEW: Check if we are in Dev Mode to adjust file paths ---
+        const isDevMode = window.location.href.includes('devMode');
+        const basePath = isDevMode ? '../' : '';
         
-        // --- MODIFIED PATH FIX ---
-        // Removed '../' from the image path
-        Logger.wrapImageLoad(wallTexture, 'Wall texture (tree_wall.jpg)', 'Ressource/tree_wall.jpg',
+        // --- MODIFIED DEV MODE PATH FIX ---
+        // Added basePath so the image loads correctly in both normal and dev mode
+        Logger.wrapImageLoad(wallTexture, 'Wall texture (tree_wall.jpg)', basePath + 'Ressource/tree_wall.jpg',
             () => {
                 game.wallTexture = wallTexture;
                 startGame();
