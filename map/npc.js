@@ -53,60 +53,64 @@ class NPC {
         if (this.isDead) {
             return null;
         }
-        
-        // Calculate distance to camera
-        const dis = helpers.distance(this.x, this.y, this.camera.x, this.camera.y);
-        
-        // Check if NPC is within render distance (7 squares = 70 units)
-        if (dis > this.camera.view.r) {
-            return null; // Too far away
+
+        const cam = this.camera;
+
+        // Vecteur du joueur vers le NPC dans le monde
+        const dx = this.x - cam.x;
+        const dy = this.y - cam.y;
+        const dis = Math.sqrt(dx * dx + dy * dy);
+
+        // Trop loin -> pas affiché
+        const maxRenderDistance = 600;
+        if (dis > maxRenderDistance || dis < 2) {
+            return null;
         }
-        
-        // Calculate angle from camera to NPC
-        this.dx = this.x - this.camera.x;
-        this.dz = this.y - this.camera.y;
-        const npcAngle = Math.atan2(this.dz, this.dx);
-        
-        // Calculate camera direction angle (adjusted for coordinate system)
-        // Camera d=0 is north, but atan2 uses east as 0, so subtract 90
-        const cameraAngle = helpers.radians(this.camera.d - 90);
-        
-        // Calculate relative angle (NPC angle relative to camera direction)
-        let relativeAngle = npcAngle - cameraAngle;
-        
-        // Normalize angle to -π to π range
-        while (relativeAngle > Math.PI) relativeAngle -= 2 * Math.PI;
-        while (relativeAngle < -Math.PI) relativeAngle += 2 * Math.PI;
-        
-        // Convert to degrees and check if within FOV (120° = ±60°)
-        const relativeAngleDeg = helpers.degrees(relativeAngle);
-        const halfFOV = this.camera.fovAngle / 2;
-        
-        if (Math.abs(relativeAngleDeg) > halfFOV) {
-            return null; // Outside FOV cone
+
+        // Angle absolu vers le NPC et angle absolu de la caméra
+        const rayAngle = Math.atan2(dx, -dy);
+        const camAngle = helpers.radians(cam.d);
+
+        // Différence d’angle (dans [-π, π])
+        let angleDiff = rayAngle - camAngle;
+        while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+        while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+
+        // Si trop sur le côté, hors champ
+        const fovDeg = cam.fovAngle || 75;
+        const halfFovRad = helpers.radians(fovDeg * 0.5);
+        if (Math.abs(angleDiff) > halfFovRad) {
+            return null;
         }
-        
-        // NPC is visible - calculate rendering position
-        this.cr = helpers.radians(this.camera.d);
+
+        const projPlane = (this.W * 0.5) / Math.tan(halfFovRad);
+
+        // Position X: même formule linéaire que le raycaster des murs
+        const spriteScreenX = this.W * (0.5 + angleDiff / (2 * halfFovRad));
+
+        // Distance corrigée (fish-eye) comme pour les murs
+        const correctedDistance = Math.max(0.1, dis * Math.cos(angleDiff));
+        const spriteHeight = (this.size * projPlane) / correctedDistance;
+        if (spriteHeight <= 2) {
+            return null;
+        }
+
+        const halfSprite = spriteHeight * 0.5;
+        if (spriteScreenX + halfSprite < 0 || spriteScreenX - halfSprite > this.W) {
+            return null;
+        }
+
+        this.zIndex = -correctedDistance;
+        this.scale = halfSprite;
         this.dy = this.hH;
-        this.angle = npcAngle;
-        this.radius = Math.sqrt(this.dx * this.dx + this.dz * this.dz) * 4;
-        this.dx = Math.cos(this.angle + this.cr) * this.radius;
-        
-        this.zIndex = -dis;
-        
-        this.scaleRatio = this.fov / (this.fov + (dis * 5));
-        this.dx = this.dx * this.scaleRatio;
-        this.scale = this.scaleRatio * this.size;
-        
-        // Store for z-sorting and weapon targeting
+
         return {
-            x: this.dx + this.camera.hW,
+            x: spriteScreenX,
             y: this.dy,
             scale: this.scale,
             color: this.color,
             zIndex: this.zIndex,
-            distance: dis,
+            distance: correctedDistance,
             npc: this
         };
     }
