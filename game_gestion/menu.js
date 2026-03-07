@@ -1,4 +1,4 @@
-// Function call when the player click on play
+// Fonction appelée quand le joueur clique sur "JOUER"
 function lancerMenu() {
     document.getElementById('main-menu').style.display = 'none';
     document.getElementById('game-ui').style.display = 'block';
@@ -10,24 +10,24 @@ function lancerMenu() {
     }
 }
 
-// skip menu
+// L'astuce pour zapper le menu quand on vient du Dev Mode
 window.addEventListener('DOMContentLoaded', () => {
-    // we look the url
+    // On regarde l'URL de la page
     const urlParams = new URLSearchParams(window.location.search);
     
-    // if it contains "?skipMenu=true"
+    // Si l'URL contient "?skipMenu=true"
     if (urlParams.get('skipMenu') === 'true') {
         
-        // we hide the black screen instantly
+        // 1. On cache l'écran noir du menu tout de suite
         document.getElementById('main-menu').style.display = 'none';
         document.getElementById('game-ui').style.display = 'block';
         
-        // we wait the loading of map.js and we start
+        // 2. On patiente un instant que map.js charge les images, puis on lance !
         let attenteJeu = setInterval(() => {
             if (typeof window.demarrerLeJeu === "function") {
-                window.demarrerLeJeu(); // auto start
-                clearInterval(attenteJeu); // stop searching 
+                window.demarrerLeJeu(); // Démarrage automatique
+                clearInterval(attenteJeu); // On arrête de chercher
             }
-        }, 100); // verification 
+        }, 100); // Vérifie toutes les 100 millisecondes
     }
 });
