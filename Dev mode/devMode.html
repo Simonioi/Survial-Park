@@ -169,8 +169,7 @@
     </style>
 </head>
 <body>
-    <button onclick="window.location.href='../index.html?skipMenu=true'">Back to Main</button>
-    
+    <button class="back-button" onclick="window.location.href='../index.html?skipMenu=true'">← Back to Main</button>    
     <div class="dev-container">
         <div class="maps-container">
             <div class="map-view">
@@ -285,6 +284,7 @@
     
     <!-- 4. Floor module (depends on nothing) -->
     <script src="../map/modules/floor.js"></script>
+    <script src="../map/modules/wall.js"></script>
     
     <!-- 5. NPC class (depends on helpers and hp) -->
     <script src="../map/npc.js"></script>
