@@ -17,12 +17,12 @@ function createWeaponState() {
 function setupWeaponInput(game) {
     if (!game || !game.canvasNPC) return;
 
-    game.canvasNPC.addEventListener('mousedown', () => {
-        game.isMouseDown = true;
+    game.canvasNPC.addEventListener('mousedown', (e) => {
+        if (e.button === 0) game.isMouseDown = true;
     });
 
-    document.addEventListener('mouseup', () => {
-        game.isMouseDown = false;
+    document.addEventListener('mouseup', (e) => {
+        if (e.button === 0) game.isMouseDown = false;
     });
 
     game.canvasNPC.addEventListener('mouseleave', () => {

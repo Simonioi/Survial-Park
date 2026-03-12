@@ -96,7 +96,7 @@ function drawWeaponOverlay(game, W, H, now) {
     const baseWidth = Math.round(W * 0.42);
     const baseHeight = Math.round(baseWidth * 0.75);
     const rightMargin = 14;
-    const bottomMargin = 10;
+    const bottomMargin = -20;
     const stretchX = isFiring ? 1.04 : 1;
     const stretchY = isFiring ? 0.97 : 1;
     const drawWidth = baseWidth * stretchX;
@@ -130,11 +130,7 @@ function drawWeaponOverlay(game, W, H, now) {
         game.ctxNPC.fillRect(drawX, drawY, drawWidth, drawHeight);
     }
 
-    if (isFiring) {
-        game.ctxNPC.globalAlpha = 0.2;
-        game.ctxNPC.fillStyle = '#fff0a0';
-        game.ctxNPC.fillRect(0, 0, W, H * 0.35);
-    }
+
 
     game.ctxNPC.globalAlpha = 0.75;
     game.ctxNPC.fillStyle = '#ffffff';
