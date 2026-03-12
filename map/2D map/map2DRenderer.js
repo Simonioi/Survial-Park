@@ -7,6 +7,7 @@ class Map2DRenderer {
         this.game = game;
         this.camera2D = null;
         this.npc2D = new NPC2DRenderer();
+        this.zoom = 1; // zoom factor (<1 = zoomed out)
     }
 
     /**
@@ -15,6 +16,22 @@ class Map2DRenderer {
     init() {
         if (this.game.player) {
             this.camera2D = new Player2DRenderer(this.game.player);
+        }
+        this.computeZoom();
+    }
+
+    /**
+     * Compute zoom so the entire maze fits in the 2D canvas
+     */
+    computeZoom() {
+        const g = this.game;
+        if (g.mazeGrid && g.mazeCellSize) {
+            const mazePixelW = g.mazeGrid[0].length * g.mazeCellSize;
+            const mazePixelH = g.mazeGrid.length * g.mazeCellSize;
+            const canvasW = g.canvas2D.width;
+            const canvasH = g.canvas2D.height;
+            // Fit the maze plus a small margin
+            this.zoom = Math.min(canvasW / mazePixelW, canvasH / mazePixelH) * 0.92;
         }
     }
 
@@ -36,7 +53,22 @@ class Map2DRenderer {
         
         // Clear canvas
         draw.clear(ctx, W, H);
-        
+
+        // Apply zoom transform centred on the maze
+        ctx.save();
+        const ox = this.game.mazeOffsetX || 0;
+        const oy = this.game.mazeOffsetY || 0;
+        const cols = this.game.mazeGrid ? this.game.mazeGrid[0].length : 0;
+        const rows = this.game.mazeGrid ? this.game.mazeGrid.length : 0;
+        const cs  = this.game.mazeCellSize || 1;
+        // Centre of the maze in world space
+        const mazeCX = ox + (cols * cs) / 2;
+        const mazeCY = oy + (rows * cs) / 2;
+        // Translate so maze centre maps to canvas centre, then scale
+        ctx.translate(W / 2, H / 2);
+        ctx.scale(this.zoom, this.zoom);
+        ctx.translate(-mazeCX, -mazeCY);
+
         // Render grid
         this.renderGrid(ctx, W, H);
 
@@ -50,6 +82,8 @@ class Map2DRenderer {
         if (this.camera2D) {
             this.camera2D.render(ctx);
         }
+
+        ctx.restore();
     }
 
     /**
@@ -73,24 +107,30 @@ class Map2DRenderer {
      * @param {number} H - Canvas height
      */
     renderGrid(ctx, W, H) {
-        const gridSize = 10; // Grid cell size in world units (matches camera icon scale)
+        const gridSize = 10;
+        const g = this.game;
+        const ox = g.mazeOffsetX || 0;
+        const oy = g.mazeOffsetY || 0;
+        const cols = g.mazeGrid ? g.mazeGrid[0].length : 0;
+        const rows = g.mazeGrid ? g.mazeGrid.length : 0;
+        const cs  = g.mazeCellSize || 1;
+        const maxX = ox + cols * cs;
+        const maxY = oy + rows * cs;
         
         ctx.strokeStyle = '#ddd';
         ctx.lineWidth = 1;
         
-        // Draw vertical lines at fixed world positions
-        for (let x = 0; x <= W; x += gridSize) {
+        for (let x = ox; x <= maxX; x += gridSize) {
             ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, H);
+            ctx.moveTo(x, oy);
+            ctx.lineTo(x, maxY);
             ctx.stroke();
         }
         
-        // Draw horizontal lines at fixed world positions
-        for (let y = 0; y <= H; y += gridSize) {
+        for (let y = oy; y <= maxY; y += gridSize) {
             ctx.beginPath();
-            ctx.moveTo(0, y);
-            ctx.lineTo(W, y);
+            ctx.moveTo(ox, y);
+            ctx.lineTo(maxX, y);
             ctx.stroke();
         }
     }

@@ -146,7 +146,7 @@
     
     function createWalls(savedMaze) {
         const wallHeight = 100;
-        const cellSize = savedMaze ? savedMaze.cellSize : 42;
+        const cellSize = savedMaze ? savedMaze.cellSize : 70;
         const cols = savedMaze ? savedMaze.cols : 41;
         const rows = savedMaze ? savedMaze.rows : 41;
         const loopChance = 0.08;
