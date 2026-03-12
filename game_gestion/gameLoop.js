@@ -158,6 +158,10 @@ function createGameLoop(game, W, H) {
         if (game.weapon && typeof drawWeaponOverlay === 'function') {
             drawWeaponOverlay(game, W, H, now);
         }
+
+        if (typeof drawHealthBar === 'function') {
+            drawHealthBar(game, W, H);
+        }
         
         game.animationId = requestAnimationFrame(gameLoop);
     }

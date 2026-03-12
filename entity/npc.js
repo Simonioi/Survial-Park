@@ -28,6 +28,11 @@ class NPC {
         // Health system - mob dies after 2 hits
         this.hpId = hp.createEntity(`Mob_${i}`, 2);
         this.isDead = false;
+
+        // Attack system — mob deals 10 damage per second when adjacent to player
+        this.attackDamage = 10;
+        this.attackCooldownMs = 1000;
+        this.lastAttackTime = 0;
         
         // Movement tracking for animation
         this.isMoving = false;
@@ -75,8 +80,17 @@ class NPC {
         const dy = cam.y - this.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
-        // Don't move if too close (avoid jittering)
-        if (distance < 20) return;
+        // Don't move if too close (avoid jittering) — attack instead
+        if (distance < 20) {
+            const now = performance.now();
+            if ((now - this.lastAttackTime) >= this.attackCooldownMs) {
+                this.lastAttackTime = now;
+                if (cam.takeDamage) {
+                    cam.takeDamage(this.attackDamage);
+                }
+            }
+            return;
+        }
         
         // Normalize direction and apply speed
         const speed = 0.25 // NPC movement speed

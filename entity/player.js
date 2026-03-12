@@ -20,6 +20,10 @@ class Player {
         this.view = { x: null, y: null, r: 70 };
         this.collisionRadius = 10;
         this.mouseSensitivity = 0.15;
+
+        // Health system — player starts with 100 HP
+        this.hpId = hp.createEntity('Player', 100);
+        this.isDead = false;
         
         this.setupKeyBindings();
         this.setupMouseLook();
@@ -111,6 +115,18 @@ class Player {
 
         if (!this.collidesWithWall(this.x, nextY)) {
             this.y = nextY;
+        }
+    }
+
+    /**
+     * Apply damage to the player
+     * @param {number} amount - HP to remove
+     */
+    takeDamage(amount) {
+        if (this.isDead) return;
+        hp.damage(this.hpId, amount);
+        if (hp.isDead(this.hpId)) {
+            this.isDead = true;
         }
     }
 

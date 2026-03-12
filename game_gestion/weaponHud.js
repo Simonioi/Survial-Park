@@ -55,7 +55,57 @@ function ensureWeaponSpriteLoaded() {
     );
 }
 
-function drawWeaponCrosshair(game, now) {
+function drawHealthBar(game, W, H) {
+    const player = game.player;
+    if (!player || !player.hpId) return;
+
+    const currentHp = hp.getHp(player.hpId);
+    const maxHp     = hp.getMaxHp(player.hpId);
+    if (currentHp === null || maxHp === null) return;
+
+    const ratio   = Math.max(0, currentHp / maxHp);
+    const barW    = 200;
+    const barH    = 18;
+    const x       = 15;
+    const y       = H - 36;
+    const radius  = 4;
+
+    const ctx = game.ctxNPC;
+    ctx.save();
+
+    // Background track
+    ctx.globalAlpha = 0.75;
+    ctx.fillStyle = '#111';
+    ctx.beginPath();
+    ctx.roundRect(x, y, barW, barH, radius);
+    ctx.fill();
+
+    // Filled portion — colour shifts green→yellow→red as HP drops
+    const r = Math.round(255 * (1 - ratio));
+    const g = Math.round(255 * ratio);
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = `rgb(${r},${g},0)`;
+    ctx.beginPath();
+    ctx.roundRect(x, y, Math.max(0, barW * ratio), barH, radius);
+    ctx.fill();
+
+    // Border
+    ctx.globalAlpha = 0.9;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(x, y, barW, barH, radius);
+    ctx.stroke();
+
+    // Label
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 12px Arial';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`HP: ${currentHp} / ${maxHp}`, x + barW + 10, y + barH / 2);
+
+    ctx.restore();
+}
     const cx = game.player.hW;
     const cy = game.player.hH;
     const pulse = 1 + (Math.sin(now * 0.02) * 0.08);
