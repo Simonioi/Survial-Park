@@ -16,11 +16,13 @@ class Camera {
         this.x = hW;
         this.y = hH;
         this.fov = 850;
-        this.fovAngle = 75; // Reduced from 120 to fix barrel distortion
+        this.fovAngle = 60; // Tighter FOV to eliminate remaining distortion
         this.view = { x: null, y: null, r: 70 };
         this.collisionRadius = 10;
+        this.mouseSensitivity = 0.15;
         
         this.setupKeyBindings();
+        this.setupMouseLook();
     }
 
     setupKeyBindings() {
@@ -30,6 +32,23 @@ class Camera {
 
         document.addEventListener('keyup', (e) => {
             this.game.keys[e.code] = false;
+        });
+    }
+
+    setupMouseLook() {
+        const canvas = this.game.canvasNPC || this.game.canvas2D;
+
+        // Click to lock pointer for mouse look.
+        document.addEventListener('click', () => {
+            if (canvas && canvas.requestPointerLock) {
+                canvas.requestPointerLock();
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (document.pointerLockElement === canvas) {
+                this.d += e.movementX * this.mouseSensitivity;
+            }
         });
     }
 
@@ -99,9 +118,7 @@ class Camera {
         // Smooth per-frame movement based on held keys.
         const keys = this.game.keys;
 
-        if (keys['ArrowLeft']) this.d += this.TSPEED;
-        if (keys['ArrowRight']) this.d -= this.TSPEED;
-
+        // Arrow Up / Down = forward / backward
         if (keys['ArrowUp']) {
             this.moveWithCollision(
                 Math.sin(helpers.radians(this.d)) * this.WSPEED,
@@ -112,6 +129,20 @@ class Camera {
             this.moveWithCollision(
                 -Math.sin(helpers.radians(this.d)) * this.WSPEED,
                 Math.cos(helpers.radians(this.d)) * this.WSPEED
+            );
+        }
+
+        // Arrow Left / Right = strafe left / right
+        if (keys['ArrowLeft']) {
+            this.moveWithCollision(
+                -Math.cos(helpers.radians(this.d)) * this.WSPEED,
+                -Math.sin(helpers.radians(this.d)) * this.WSPEED
+            );
+        }
+        if (keys['ArrowRight']) {
+            this.moveWithCollision(
+                Math.cos(helpers.radians(this.d)) * this.WSPEED,
+                Math.sin(helpers.radians(this.d)) * this.WSPEED
             );
         }
 
