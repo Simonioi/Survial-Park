@@ -46,6 +46,11 @@ function createGameLoop(game, W, H) {
 
         // Update player
         game.player.loop();
+
+        // Wave manager — check for next wave
+        if (typeof WaveManager !== 'undefined') {
+            WaveManager.update();
+        }
         
         // Clean up dead NPCs periodically (every ~100 frames = ~1.6 seconds at 60fps)
         if (!gameLoop.frameCount) gameLoop.frameCount = 0;

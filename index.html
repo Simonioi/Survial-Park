@@ -35,8 +35,8 @@
                 <li><strong>Mouse Left Click / Space:</strong> Fire pistol</li>
             </ul>
             <div class="button-group">
-                <button onclick="window.location.href='index.html'" style="background-color: #8b0000;">Main Menu</button>
-                <button onclick="window.location.href='Dev mode/devMode.html'" style="background-color: #cc6600;">🛠️ Dev Mode</button>
+                <button onclick="if(window.resetGame) resetGame(); window.location.href='index.html'" style="background-color: #8b0000;">Main Menu</button>
+                <button onclick="if(window.SaveSystem && window.game) SaveSystem.saveGame(window.game); window.location.href='Dev mode/devMode.html'" style="background-color: #cc6600;">🛠️ Dev Mode</button>
             </div>
         </div>
     </div>
@@ -54,6 +54,7 @@
     <script src="game_gestion/weaponSystem.js"></script>
     <script src="game_gestion/weaponHud.js"></script>
     <script src="game_gestion/saveSystem.js"></script>
+    <script src="game_gestion/survival/waveManager.js"></script>
     <script src="game_gestion/gameLoop.js"></script>
     <script src="map/map.js"></script>
 
