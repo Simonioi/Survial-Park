@@ -52,13 +52,9 @@ class Floor {
 
         const viewHeight = height - horizon;
 
-        if (this.loaded && this.backgroundImage) {
-            // Draw floor texture stretched and fixed — no scrolling at all.
-            ctx.drawImage(this.backgroundImage, 0, 0, this.backgroundImage.width, this.backgroundImage.height, 0, horizon, width, viewHeight);
-        } else {
-            ctx.fillStyle = '#6b5b3e';
-            ctx.fillRect(0, horizon, width, viewHeight);
-        }
+        // Solid fixed ground — no image, no movement.
+        ctx.fillStyle = '#4a3728';
+        ctx.fillRect(0, horizon, width, viewHeight);
 
         // Depth-fog gradient for retro feel.
         const grad = ctx.createLinearGradient(0, horizon, 0, height);
