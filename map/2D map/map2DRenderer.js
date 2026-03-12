@@ -39,13 +39,29 @@ class Map2DRenderer {
         
         // Render grid
         this.renderGrid(ctx, W, H);
-        
+
+        // Render walls
+        this.renderWalls(ctx);
+
         // Render NPCs
         this.npc2D.render(ctx);
         
         // Render camera (on top)
         if (this.camera2D) {
             this.camera2D.render(ctx);
+        }
+    }
+
+    /**
+     * Render all wall segments on the 2D map
+     * @param {CanvasRenderingContext2D} ctx - 2D canvas context
+     */
+    renderWalls(ctx) {
+        const walls = this.game.walls;
+        if (!walls || walls.length === 0) return;
+
+        for (let i = 0; i < walls.length; i++) {
+            walls[i].draw2D(ctx);
         }
     }
 
