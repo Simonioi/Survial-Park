@@ -9,8 +9,8 @@
     const H = Math.min(600, window.innerHeight - 20); // Smaller canvas size, max 600px
     const hW = W / 2; // half-width and half-height for centering
     const hH = H / 2; // half-width and half-height for centering
-    const TSPEED = 3; // turning speed
-    const WSPEED = 3; // walking speed (réduit pour un déplacement moins rapide)
+    const TSPEED = 2; // turning speed
+    const WSPEED = 1.5; // walking speed
 
     // Game state
     const game = {
