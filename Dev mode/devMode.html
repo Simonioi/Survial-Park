@@ -187,8 +187,8 @@
             
             <div class="dev-section">
                 <h3>NPC Spawning</h3>
-                <button class="dev-button" onclick="spawnNPC()">➕ Spawn Random NPC</button>
-                <button class="dev-button danger" onclick="clearNPCs()">🗑️ Clear All NPCs</button>
+                <button class="dev-button" onclick="spawnNPC()">Spawn Random NPC</button>
+                <button class="dev-button danger" onclick="clearNPCs()">Clear All NPCs</button>
                 
                 <div class="info-grid" style="margin-top: 15px;">
                     <div class="info-item">
@@ -229,6 +229,7 @@
                     <strong>Dev Mode:</strong><br>
                     • Click spawn button to add NPCs<br>
                     • NPCs spawn at random positions
+                    • Click on 2D map to teleport player
                 </div>
             </div>
         </div>
@@ -307,7 +308,10 @@
     
     <!-- 9. Dev Mode manager -->
     <script src="devMode.js"></script>
-    
+
+    <!-- 9.5 Teleport command (dev only) -->
+    <script src="tp_command.js"></script>
+
     <!-- 10. Main entry point (coordinates everything) -->
     <script src="../map/map.js"></script>
 </body>
