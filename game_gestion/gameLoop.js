@@ -3,24 +3,40 @@
  * Handles the update and render cycle for the game
  */
 function createGameLoop(game, W, H) {
-    // Load NPC image for 3D rendering
-    const npcImage = new Image();
-    let npcImageLoaded = false;
-
-    const npcImageCandidates = ['Ressource/ugly.png', '../Ressource/ugly.png'];
-    const tryLoadNpcImage = (index) => {
-        if (index >= npcImageCandidates.length) {
-            Logger.warn('NPC image not found, using circle fallback');
+    // Load NPC video for 3D rendering with animation
+    const npcVideo = document.createElement('video');
+    let npcVideoLoaded = false;
+    const npcVideoSpeed = 2.0; // Variable to control video playback speed (1.0 = normal)
+    npcVideo.loop = true;
+    npcVideo.muted = true;
+    npcVideo.playsInline = true;
+    npcVideo.playbackRate = npcVideoSpeed;
+    
+    const npcVideoCandidates = [
+        'Ressource/Video_de_Monstre_Sans_Fond.mp4', 
+        '../Ressource/Video_de_Monstre_Sans_Fond.mp4'
+    ];
+    
+    const tryLoadNpcVideo = (index) => {
+        if (index >= npcVideoCandidates.length) {
+            Logger.warn('NPC video not found, using circle fallback');
             return;
         }
 
-        Logger.wrapImageLoad(npcImage, 'NPC 3D image (ugly.png)', npcImageCandidates[index],
-            () => { npcImageLoaded = true; },
-            () => { tryLoadNpcImage(index + 1); }
-        );
+        npcVideo.src = npcVideoCandidates[index];
+        npcVideo.addEventListener('loadeddata', () => {
+            npcVideoLoaded = true;
+            npcVideo.playbackRate = npcVideoSpeed; // Apply speed after video is loaded
+            npcVideo.pause(); // Start paused, will play when NPCs move
+            Logger.info('✓ NPC video loaded (Video_de_Monstre_Sans_Fond.mp4)');
+        });
+        npcVideo.addEventListener('error', () => {
+            tryLoadNpcVideo(index + 1);
+        });
+        npcVideo.load();
     };
 
-    tryLoadNpcImage(0);
+    tryLoadNpcVideo(0);
 
     // Cache du wrapper de la mini-carte 2D pour pouvoir couper son rendu quand elle est cachée
     const map2DWrapper = document.getElementById('map2d-wrapper');
@@ -90,6 +106,24 @@ function createGameLoop(game, W, H) {
             updateWeaponSystem(game, npcRenderData, now);
         }
 
+        // Control video playback based on NPC movement
+        if (npcVideoLoaded) {
+            let anyNPCMoving = false;
+            for (let npc of game.npcs) {
+                if (npc && npc.isMoving && !npc.isDead) {
+                    anyNPCMoving = true;
+                    break;
+                }
+            }
+            
+            // Play video when any NPC is moving, pause when all are stationary
+            if (anyNPCMoving && npcVideo.paused) {
+                npcVideo.play().catch(e => {}); // Silent catch for autoplay restrictions
+            } else if (!anyNPCMoving && !npcVideo.paused) {
+                npcVideo.pause();
+            }
+        }
+        
         // Render NPCs from far to near, hidden when behind wall columns.
         npcRenderData.sort((a, b) => a.distance - b.distance);
         for (let data of npcRenderData) {
@@ -98,14 +132,19 @@ function createGameLoop(game, W, H) {
                 continue;
             }
 
-            if (npcImageLoaded) {
+            if (npcVideoLoaded) {
                 const imageSize = data.scale * 2;
+                // Preserve video aspect ratio
+                const videoRatio = npcVideo.videoWidth / npcVideo.videoHeight;
+                const imageWidth = imageSize * videoRatio;
+                const imageHeight = imageSize;
+                
                 game.ctxNPC.drawImage(
-                    npcImage,
-                    data.x - imageSize / 2,
-                    data.y - imageSize / 2,
-                    imageSize,
-                    imageSize
+                    npcVideo,
+                    data.x - imageWidth / 2,
+                    data.y - imageHeight / 2,
+                    imageWidth,
+                    imageHeight
                 );
             } else {
                 draw.circle(game.ctxNPC, data.x, data.y, data.scale, data.color);
