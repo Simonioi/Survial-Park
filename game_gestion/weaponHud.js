@@ -187,6 +187,9 @@ function drawWeaponOverlay(game, W, H, now) {
     game.ctxNPC.font = 'bold 14px Arial';
     game.ctxNPC.fillText(`KILLS: ${game.score.kills}`, 15, 25);
     game.ctxNPC.fillText(`SHOTS: ${game.score.shots}`, 15, 45);
+    if (typeof WaveManager !== 'undefined') {
+        game.ctxNPC.fillText(`WAVE: ${WaveManager.getWave()}`, 15, 65);
+    }
 
     game.ctxNPC.restore();
 }

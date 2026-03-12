@@ -169,7 +169,7 @@
     </style>
 </head>
 <body>
-    <button class="back-button" onclick="window.location.href='../index.html?skipMenu=true'">← Back to Main</button>    
+    <button class="back-button" onclick="if(window.SaveSystem && window.game) SaveSystem.saveGame(window.game); window.location.href='../index.html?skipMenu=true'">← Back to Main</button>    
     <div class="dev-container">
         <div class="maps-container">
             <div class="map-view">
@@ -302,7 +302,10 @@
     
     <!-- 7.5 Save System (in game_gestion) -->
     <script src="../game_gestion/saveSystem.js"></script>
-    
+
+    <!-- 7.6 Survival wave manager -->
+    <script src="../game_gestion/survival/waveManager.js"></script>
+
     <!-- 8. Game loop (depends on all modules, in game_gestion) -->
     <script src="../game_gestion/gameLoop.js"></script>
     

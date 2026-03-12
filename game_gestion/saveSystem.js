@@ -9,7 +9,9 @@ const SaveSystem = {
     KEYS: {
         NPCS: 'survivalPark_npcs',
         PLAYER: 'survivalPark_player',
-        STATS: 'survivalPark_stats'
+        STATS: 'survivalPark_stats',
+        WAVE: 'survivalPark_wave',
+        MAZE: 'survivalPark_maze'
     },
 
     /**
@@ -20,6 +22,8 @@ const SaveSystem = {
         this.saveNPCs(game.npcs);
         this.savePlayerPosition(game.player);
         this.saveStats(game.score);
+        this.saveWave();
+        this.saveMaze(game);
         Logger.saved('game state', 'to localStorage');
     },
 
@@ -34,6 +38,7 @@ const SaveSystem = {
         this.loadPlayerPosition(game.player);
         this.loadStats(game.score);
         this.loadNPCs(game, W, H, hH);
+        this.loadWave();
         Logger.loaded('game state', 'from localStorage');
     },
 
@@ -184,7 +189,7 @@ const SaveSystem = {
         localStorage.removeItem(this.KEYS.NPCS);
         localStorage.removeItem(this.KEYS.PLAYER);
         localStorage.removeItem(this.KEYS.STATS);
-        Logger.info('✓ Cleared all saved game data');
+        localStorage.removeItem(this.KEYS.WAVE);        localStorage.removeItem(this.KEYS.MAZE);        Logger.info('✓ Cleared all saved game data');
     },
 
     /**
@@ -203,6 +208,74 @@ const SaveSystem = {
             hasStats: !!stats,
             stats: stats ? JSON.parse(stats) : null
         };
+    },
+
+    /**
+     * Save wave state
+     */
+    saveWave() {
+        if (typeof WaveManager !== 'undefined') {
+            localStorage.setItem(this.KEYS.WAVE, JSON.stringify({ wave: WaveManager.getWave() }));
+        }
+    },
+
+    /**
+     * Load wave state
+     */
+    loadWave() {
+        var data = localStorage.getItem(this.KEYS.WAVE);
+        if (!data || typeof WaveManager === 'undefined') return;
+        try {
+            var parsed = JSON.parse(data);
+            if (parsed.wave) WaveManager.setWave(parsed.wave);
+        } catch (e) { /* ignore */ }
+    },
+
+    /**
+     * Save maze grid + params so the same map is restored across page loads
+     */
+    saveMaze(game) {
+        if (!game.mazeGrid) return;
+        var rows = game.mazeGrid.length;
+        // Pack grid to a compact string of '0'/'1'
+        var flat = '';
+        for (var y = 0; y < rows; y++) {
+            for (var x = 0; x < game.mazeGrid[y].length; x++) {
+                flat += game.mazeGrid[y][x];
+            }
+        }
+        var data = {
+            cols: game.mazeGrid[0].length,
+            rows: rows,
+            flat: flat,
+            cellSize: game.mazeCellSize,
+            offsetX: game.mazeOffsetX,
+            offsetY: game.mazeOffsetY
+        };
+        localStorage.setItem(this.KEYS.MAZE, JSON.stringify(data));
+    },
+
+    /**
+     * Load saved maze data (returns null when nothing saved)
+     */
+    loadMaze() {
+        var raw = localStorage.getItem(this.KEYS.MAZE);
+        if (!raw) return null;
+        try {
+            var data = JSON.parse(raw);
+            var grid = [];
+            var idx = 0;
+            for (var y = 0; y < data.rows; y++) {
+                var row = [];
+                for (var x = 0; x < data.cols; x++) {
+                    row.push(Number(data.flat[idx++]));
+                }
+                grid.push(row);
+            }
+            return { grid: grid, cols: data.cols, rows: data.rows, cellSize: data.cellSize, offsetX: data.offsetX, offsetY: data.offsetY };
+        } catch (e) {
+            return null;
+        }
     }
 };
 

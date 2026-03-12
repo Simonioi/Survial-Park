@@ -144,25 +144,32 @@
         tryLoad(0);
     }
     
-    function createWalls() {
+    function createWalls(savedMaze) {
         const wallHeight = 100;
-        const cellSize = 42;
-        const cols = 41;
-        const rows = 41;
+        const cellSize = savedMaze ? savedMaze.cellSize : 42;
+        const cols = savedMaze ? savedMaze.cols : 41;
+        const rows = savedMaze ? savedMaze.rows : 41;
         const loopChance = 0.08;
         const spawnSafeRadius = 1;   // cells of clearance around spawn
 
         game.walls.length = 0;
 
-        const startCellX = 1 + 2 * MazeGen.randomInt(Math.floor((cols - 1) / 2));
-        const startCellY = 1 + 2 * MazeGen.randomInt(Math.floor((rows - 1) / 2));
+        let grid;
+        let offsetX, offsetY;
 
-        // 1) Generate base DFS maze (random each game).
-        const grid = MazeGen.generateGrid(cols, rows, startCellX, startCellY, loopChance);
+        if (savedMaze) {
+            grid = savedMaze.grid;
+            offsetX = savedMaze.offsetX;
+            offsetY = savedMaze.offsetY;
+        } else {
+            const startCellX = 1 + 2 * MazeGen.randomInt(Math.floor((cols - 1) / 2));
+            const startCellY = 1 + 2 * MazeGen.randomInt(Math.floor((rows - 1) / 2));
+            grid = MazeGen.generateGrid(cols, rows, startCellX, startCellY, loopChance);
+            offsetX = Math.floor((W - cols * cellSize) / 2);
+            offsetY = Math.floor((H - rows * cellSize) / 2);
+        }
 
-        // 2) Convert grid to wall segments.
-        const offsetX = Math.floor((W - cols * cellSize) / 2);
-        const offsetY = Math.floor((H - rows * cellSize) / 2);
+        // Convert grid to wall segments.
         const wallSegments = MazeGen.gridToWallSegments(grid, cellSize, offsetX, offsetY);
 
         for (let i = 0; i < wallSegments.length; i++) {
@@ -197,9 +204,17 @@
         // Create player (from player.js)
         game.player = new Player(game, W, H, hW, hH, TSPEED, WSPEED);
 
-        // Create procedural connected corridors and place player at map spawn.
-        const spawn = createWalls();
-        if (spawn) {
+        // Try to restore a saved maze, otherwise generate a new one
+        const savedMaze = window.SaveSystem ? SaveSystem.loadMaze() : null;
+        const spawn = createWalls(savedMaze);
+
+        if (savedMaze) {
+            // Restore player position, score, NPCs, wave from save
+            if (window.SaveSystem) {
+                SaveSystem.loadPlayerPosition(game.player);
+                SaveSystem.loadStats(game.score);
+            }
+        } else if (spawn) {
             game.player.x = spawn.x;
             game.player.y = spawn.y;
             game.player.d = 0;
@@ -223,16 +238,21 @@
             initDevMode(game);
             Logger.gameState('Dev Mode active - Use spawn button to add NPCs');
         } else {
-            // Normal mode: No automatic NPC spawning
-            Logger.gameState('Normal mode - Use dev mode to spawn NPCs');
-            
-            // Load NPCs from localStorage (synced from dev mode)
-            loadNPCsFromLocalStorage();
+            // Normal mode: survival wave spawning
+            if (typeof WaveManager !== 'undefined') {
+                WaveManager.init(game);
+                if (savedMaze) {
+                    // Restore NPCs and wave from save
+                    if (window.SaveSystem) {
+                        SaveSystem.loadNPCs(game, W, H, hH);
+                        SaveSystem.loadWave();
+                    }
+                }
+                Logger.gameState('Survival mode — wave spawning active');
+            } else {
+                loadNPCsFromLocalStorage();
+            }
         }
-
-        // Always start a fresh score regardless of what loadStats restored.
-        game.score.kills = 0;
-        game.score.shots = 0;
 
         // Auto-save when leaving the page
         window.addEventListener('beforeunload', () => {
@@ -241,13 +261,24 @@
                 Logger.autoSave.onUnload();
             }
         });
-        
-        // Periodic auto-save every 10 seconds
+
+        // Auto-save periodically every 10 seconds
         setInterval(() => {
             if (window.SaveSystem && game) {
                 SaveSystem.saveGame(game);
             }
         }, 10000);
+
+        // Expose resetGame globally so the Main Menu button can call it
+        window.resetGame = function () {
+            // Stop game loop
+            if (game.animationId) {
+                cancelAnimationFrame(game.animationId);
+                game.animationId = null;
+            }
+            // Clear saved data
+            if (window.SaveSystem) SaveSystem.clearAll();
+        };
         
         // Start game loop (from gameLoop.js)
         const gameLoop = createGameLoop(game, W, H);
