@@ -1,8 +1,8 @@
 /**
- * Camera Class
- * Handles camera position, rotation, and rendering on 2D map
+ * Player Class
+ * Handles player position, rotation, input, and collision
  */
-class Camera {
+class Player {
     constructor(game, W, H, hW, hH, TSPEED, WSPEED) {
         this.game = game;
         this.W = W;
@@ -148,7 +148,7 @@ class Camera {
             );
         }
 
-        // Update camera rotation bounds
+        // Update rotation bounds
         if (this.d > 360) this.d -= 360;
         if (this.d < 0) this.d += 360;
         

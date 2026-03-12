@@ -199,7 +199,7 @@
             </div>
             
             <div class="dev-section">
-                <h3>Camera Info</h3>
+                <h3>Player Info</h3>
                 <div class="info-grid">
                     <div class="info-item">
                         <div class="info-label">Position X</div>
@@ -221,7 +221,7 @@
                 <div class="controls-list">
                     <strong>Movement:</strong><br>
                     • Arrow Up/Down - Move forward/backward<br>
-                    • Arrow Left/Right - Rotate camera<br>
+                    • Arrow Left/Right - Rotate player<br>
                     <br>
                     <strong>Weapon:</strong><br>
                     • Left Click / Space - Fire<br>
@@ -238,14 +238,14 @@
         // Debug: Log when page starts loading
         if (window.Logger) Logger.debug('Dev Mode page loading...');
         
-        // Update camera info display
-        function updateCameraInfo() {
-            if (window.game && window.game.camera) {
-                document.getElementById('camX').textContent = Math.round(window.game.camera.x);
-                document.getElementById('camY').textContent = Math.round(window.game.camera.y);
-                document.getElementById('camRot').textContent = Math.round(window.game.camera.d) + '°';
+        // Update player info display
+        function updatePlayerInfo() {
+            if (window.game && window.game.player) {
+                document.getElementById('camX').textContent = Math.round(window.game.player.x);
+                document.getElementById('camY').textContent = Math.round(window.game.player.y);
+                document.getElementById('camRot').textContent = Math.round(window.game.player.d) + '°';
             }
-            requestAnimationFrame(updateCameraInfo);
+            requestAnimationFrame(updatePlayerInfo);
         }
         
         // Start updating when game loads
@@ -254,7 +254,7 @@
             setTimeout(() => {
                 if (window.game) {
                     if (window.Logger) Logger.info('✓ Game object found:', window.game);
-                    updateCameraInfo();
+                    updatePlayerInfo();
                 } else {
                     if (window.Logger) Logger.error('✗ Game object not found! Check script loading.');
                 }
@@ -279,8 +279,8 @@
     <!-- 2. HP system from game_gestion (used by NPCs) -->
     <script src="../game_gestion/hp.js"></script>
     
-    <!-- 3. Camera class (depends on helpers) -->
-    <script src="../map/camera.js"></script>
+    <!-- 3. Player class (depends on helpers) -->
+    <script src="../entity/player.js"></script>
     
     <!-- 4. Floor module (depends on nothing) -->
     <script src="../map/modules/floor.js"></script>
@@ -288,7 +288,7 @@
     <script src="../map/maze_gen.js"></script>
     
     <!-- 5. NPC class (depends on helpers and hp) -->
-    <script src="../map/npc.js"></script>
+    <script src="../entity/npc.js"></script>
     
     <!-- 6. 2D Map rendering modules -->
     <script src="../map/2D map/camera2D.js"></script>

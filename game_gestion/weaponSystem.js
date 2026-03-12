@@ -31,8 +31,8 @@ function setupWeaponInput(game) {
 }
 
 function selectWeaponTarget(game, renderData) {
-    const centerX = game.camera.hW;
-    const centerY = game.camera.hH;
+    const centerX = game.player.hW;
+    const centerY = game.player.hH;
     let bestTarget = null;
 
     for (let i = 0; i < renderData.length; i++) {

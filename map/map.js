@@ -18,7 +18,7 @@
         ctx2D: null,
         canvasNPC: null,
         ctxNPC: null,
-        camera: null,
+        player: null,
         npcs: [],
         walls: [],
         floor: null,
@@ -194,15 +194,15 @@
     }
     
     function startGame() {
-        // Create camera (from camera.js)
-        game.camera = new Camera(game, W, H, hW, hH, TSPEED, WSPEED);
+        // Create player (from player.js)
+        game.player = new Player(game, W, H, hW, hH, TSPEED, WSPEED);
 
         // Create procedural connected corridors and place player at map spawn.
         const spawn = createWalls();
         if (spawn) {
-            game.camera.x = spawn.x;
-            game.camera.y = spawn.y;
-            game.camera.d = 0;
+            game.player.x = spawn.x;
+            game.player.y = spawn.y;
+            game.player.d = 0;
         }
 
         // Initialize isolated weapon modules when present.

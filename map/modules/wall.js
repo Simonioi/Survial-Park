@@ -58,11 +58,11 @@ function intersectRaySegment(rayX, rayY, rayDX, rayDY, wall) {
  * Returns a z-buffer for sprite/NPC occlusion.
  */
 function renderRaycastWalls(game, ctx, W, H) {
-    if (!game || !game.camera || !game.walls || game.walls.length === 0) {
+    if (!game || !game.player || !game.walls || game.walls.length === 0) {
         return new Array(W).fill(Infinity);
     }
 
-    const camera = game.camera;
+    const camera = game.player;
     const rayStep = 2; // Lower resolution for stable FPS
     const zBuffer = new Array(W).fill(Infinity);
     const halfH = H / 2;
@@ -153,7 +153,7 @@ Wall.prototype.draw2D = function(ctx) {
  * @returns {Object} Render data with z-index and render function
  */
 Wall.prototype.loop = function() {
-    const camera = this.game.camera;
+    const camera = this.game.player;
     const hH = this.game.canvas2D.height / 2;
     
     // Project the 4 corners of the wall to 2D screen space

@@ -56,8 +56,8 @@ function ensureWeaponSpriteLoaded() {
 }
 
 function drawWeaponCrosshair(game, now) {
-    const cx = game.camera.hW;
-    const cy = game.camera.hH;
+    const cx = game.player.hW;
+    const cy = game.player.hH;
     const pulse = 1 + (Math.sin(now * 0.02) * 0.08);
     const gap = 8 * pulse;
     const len = 14 * pulse;
@@ -83,8 +83,8 @@ function drawWeaponCrosshair(game, now) {
 function drawWeaponOverlay(game, W, H, now) {
     ensureWeaponSpriteLoaded();
 
-    const centerX = game.camera.hW;
-    const centerY = game.camera.hH;
+    const centerX = game.player.hW;
+    const centerY = game.player.hH;
     const recoilY = game.weapon.recoil;
     const isFiring = now < game.weapon.muzzleFlashUntil;
     const fireAnimMs = game.weapon.fireAnimMs || 90;

@@ -157,10 +157,10 @@ class DevMode {
     }
 
     /**
-     * Get camera info
+     * Get player info
      */
-    getCameraInfo() {
-        const cam = this.game.camera;
+    getPlayerInfo() {
+        const cam = this.game.player;
         return {
             x: Math.round(cam.x),
             y: Math.round(cam.y),

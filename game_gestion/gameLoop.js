@@ -44,8 +44,8 @@ function createGameLoop(game, W, H) {
     function gameLoop() {
         const now = performance.now();
 
-        // Update camera
-        game.camera.loop();
+        // Update player
+        game.player.loop();
         
         // Clean up dead NPCs periodically (every ~100 frames = ~1.6 seconds at 60fps)
         if (!gameLoop.frameCount) gameLoop.frameCount = 0;
@@ -72,7 +72,7 @@ function createGameLoop(game, W, H) {
         
         // Draw sky/floor first
         if (game.floor) {
-            game.floor.render(game.ctxNPC, W, H, game.camera);
+            game.floor.render(game.ctxNPC, W, H, game.player);
         } else {
             // Fallback if floor module not initialized
             game.ctxNPC.fillStyle = '#000000';

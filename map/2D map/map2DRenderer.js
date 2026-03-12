@@ -10,11 +10,11 @@ class Map2DRenderer {
     }
 
     /**
-     * Initialize the 2D renderer after camera is created
+     * Initialize the 2D renderer after player is created
      */
     init() {
-        if (this.game.camera) {
-            this.camera2D = new Camera2DRenderer(this.game.camera);
+        if (this.game.player) {
+            this.camera2D = new Player2DRenderer(this.game.player);
         }
     }
 
@@ -46,7 +46,7 @@ class Map2DRenderer {
         // Render NPCs
         this.npc2D.render(ctx);
         
-        // Render camera (on top)
+        // Render player (on top)
         if (this.camera2D) {
             this.camera2D.render(ctx);
         }

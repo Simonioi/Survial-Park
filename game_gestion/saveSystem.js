@@ -18,7 +18,7 @@ const SaveSystem = {
      */
     saveGame(game) {
         this.saveNPCs(game.npcs);
-        this.savePlayerPosition(game.camera);
+        this.savePlayerPosition(game.player);
         this.saveStats(game.score);
         Logger.saved('game state', 'to localStorage');
     },
@@ -31,7 +31,7 @@ const SaveSystem = {
      * @param {Number} hH - Half canvas height
      */
     loadGame(game, W, H, hH) {
-        this.loadPlayerPosition(game.camera);
+        this.loadPlayerPosition(game.player);
         this.loadStats(game.score);
         this.loadNPCs(game, W, H, hH);
         Logger.loaded('game state', 'from localStorage');

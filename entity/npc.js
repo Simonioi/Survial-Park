@@ -12,11 +12,11 @@ class NPC {
         
         this.x = x !== undefined ? x : helpers.random(W);
         this.y = y !== undefined ? y : helpers.random(H);
-        this.camera = game.camera;
+        this.player = game.player;
         this.dx = 0;
         this.dy = 0;
         this.dz = 0;
-        this.fov = this.camera ? this.camera.fov : 0;
+        this.fov = this.player ? this.player.fov : 0;
         this.scale = 0;
         this.angle = 0;
         this.color = '#FF6600'; // Orange color for 3D representation
@@ -60,15 +60,15 @@ class NPC {
         // Don't move if dead
         if (this.isDead) return;
         
-        // Get camera reference (with fallback if not set in constructor)
-        if (!this.camera && this.game && this.game.camera) {
-            this.camera = this.game.camera;
+        // Get player reference (with fallback if not set in constructor)
+        if (!this.player && this.game && this.game.player) {
+            this.player = this.game.player;
         }
         
-        // Still no camera? Can't move
-        if (!this.camera) return;
+        // Still no player? Can't move
+        if (!this.player) return;
 
-        const cam = this.camera;
+        const cam = this.player;
         
         // Calculate direction to player
         const dx = cam.x - this.x;
@@ -174,15 +174,15 @@ class NPC {
             return null;
         }
 
-        // Get camera reference (with fallback if not set in constructor)
-        if (!this.camera && this.game && this.game.camera) {
-            this.camera = this.game.camera;
+        // Get player reference (with fallback if not set in constructor)
+        if (!this.player && this.game && this.game.player) {
+            this.player = this.game.player;
         }
         
-        // No camera? Can't render
-        if (!this.camera) return null;
+        // No player? Can't render
+        if (!this.player) return null;
 
-        const cam = this.camera;
+        const cam = this.player;
 
         // Vecteur du joueur vers le NPC dans le monde
         const dx = this.x - cam.x;
@@ -199,7 +199,7 @@ class NPC {
         const rayAngle = Math.atan2(dx, -dy);
         const camAngle = helpers.radians(cam.d);
 
-        // Différence d’angle (dans [-π, π])
+        // Différence d'angle (dans [-π, π])
         let angleDiff = rayAngle - camAngle;
         while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
         while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
