@@ -118,28 +118,30 @@ class Camera {
         // Smooth per-frame movement based on held keys.
         const keys = this.game.keys;
 
-        // Arrow Up / Down = forward / backward
-        if (keys['ArrowUp']) {
+        // Z / Arrow Up = forward
+        if (keys['KeyW'] || keys['ArrowUp']) {
             this.moveWithCollision(
                 Math.sin(helpers.radians(this.d)) * this.WSPEED,
                 -Math.cos(helpers.radians(this.d)) * this.WSPEED
             );
         }
-        if (keys['ArrowDown']) {
+        // S / Arrow Down = backward
+        if (keys['KeyS'] || keys['ArrowDown']) {
             this.moveWithCollision(
                 -Math.sin(helpers.radians(this.d)) * this.WSPEED,
                 Math.cos(helpers.radians(this.d)) * this.WSPEED
             );
         }
 
-        // Arrow Left / Right = strafe left / right
-        if (keys['ArrowLeft']) {
+        // Q / Arrow Left = strafe left
+        if (keys['KeyA'] || keys['ArrowLeft']) {
             this.moveWithCollision(
                 -Math.cos(helpers.radians(this.d)) * this.WSPEED,
                 -Math.sin(helpers.radians(this.d)) * this.WSPEED
             );
         }
-        if (keys['ArrowRight']) {
+        // D / Arrow Right = strafe right
+        if (keys['KeyD'] || keys['ArrowRight']) {
             this.moveWithCollision(
                 Math.cos(helpers.radians(this.d)) * this.WSPEED,
                 Math.sin(helpers.radians(this.d)) * this.WSPEED
