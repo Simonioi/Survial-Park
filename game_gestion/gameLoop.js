@@ -69,6 +69,12 @@ function createGameLoop(game, W, H) {
             zBuffer = renderRaycastWalls(game, game.ctxNPC, W, H);
         }
 
+        // Update NPC positions (movement & AI)
+        for (let npc of game.npcs) {
+            if (!npc) continue; // Skip null/undefined NPCs
+            npc.update(); // Move NPCs toward player with collision detection
+        }
+
         // Update and collect NPC render data
         const npcRenderData = [];
         for (let npc of game.npcs) {
