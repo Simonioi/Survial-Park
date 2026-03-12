@@ -106,6 +106,8 @@ function drawHealthBar(game, W, H) {
 
     ctx.restore();
 }
+
+function drawWeaponCrosshair(game, now) {
     const cx = game.player.hW;
     const cy = game.player.hH;
     const pulse = 1 + (Math.sin(now * 0.02) * 0.08);

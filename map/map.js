@@ -229,7 +229,11 @@
             // Load NPCs from localStorage (synced from dev mode)
             loadNPCsFromLocalStorage();
         }
-        
+
+        // Always start a fresh score regardless of what loadStats restored.
+        game.score.kills = 0;
+        game.score.shots = 0;
+
         // Auto-save when leaving the page
         window.addEventListener('beforeunload', () => {
             if (window.SaveSystem && game) {

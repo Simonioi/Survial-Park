@@ -46,7 +46,15 @@ function createGameLoop(game, W, H) {
 
         // Update player
         game.player.loop();
-        
+
+        // Show death screen and halt loop when player dies.
+        if (game.player.isDead) {
+            cancelAnimationFrame(game.animationId);
+            const deathScreen = document.getElementById('death-screen');
+            if (deathScreen) deathScreen.style.display = 'flex';
+            return;
+        }
+
         // Clean up dead NPCs periodically (every ~100 frames = ~1.6 seconds at 60fps)
         if (!gameLoop.frameCount) gameLoop.frameCount = 0;
         gameLoop.frameCount++;

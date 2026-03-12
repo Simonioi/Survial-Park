@@ -131,6 +131,9 @@ class Player {
     }
 
     loop() {
+        // Freeze all input when dead.
+        if (this.isDead) return;
+
         // Smooth per-frame movement based on held keys.
         const keys = this.game.keys;
 
