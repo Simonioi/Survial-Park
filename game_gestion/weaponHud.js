@@ -130,12 +130,6 @@ function drawWeaponOverlay(game, W, H, now) {
         game.ctxNPC.fillRect(drawX, drawY, drawWidth, drawHeight);
     }
 
-    if (isFiring) {
-        game.ctxNPC.globalAlpha = 0.2;
-        game.ctxNPC.fillStyle = '#fff0a0';
-        game.ctxNPC.fillRect(0, 0, W, H * 0.35);
-    }
-
     game.ctxNPC.globalAlpha = 0.75;
     game.ctxNPC.fillStyle = '#ffffff';
     game.ctxNPC.font = 'bold 14px Arial';
