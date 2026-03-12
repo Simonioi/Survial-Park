@@ -28,6 +28,11 @@ class NPC {
         // Health system - mob dies after 2 hits
         this.hpId = hp.createEntity(`Mob_${i}`, 2);
         this.isDead = false;
+        
+        // Movement tracking for animation
+        this.isMoving = false;
+        this.lastX = this.x;
+        this.lastY = this.y;
     }
 
     /**
@@ -84,6 +89,9 @@ class NPC {
         
         // Check collision with walls
         const collisionRadius = 15; // NPC collision radius
+        const oldX = this.x;
+        const oldY = this.y;
+        
         if (!this.checkWallCollision(newX, newY, collisionRadius)) {
             // No collision - update position
             this.x = newX;
@@ -97,6 +105,9 @@ class NPC {
             }
             // If both fail, NPC stays in place (blocked by wall)
         }
+        
+        // Track if NPC actually moved for animation
+        this.isMoving = (this.x !== oldX || this.y !== oldY);
     }
 
     /**
