@@ -144,63 +144,623 @@
         tryLoad(0);
     }
     
-    function createWalls() {
-        // Build a clean retro FPS corridor layout.
-        const wallHeight = 100;
+    function randomInt(maxExclusive) {
+        return Math.floor(Math.random() * maxExclusive);
+    }
 
-        // Reset existing walls before creating the corridor.
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = randomInt(i + 1);
+            const tmp = array[i];
+            array[i] = array[j];
+            array[j] = tmp;
+        }
+    }
+
+    function generateConnectedCorridorGrid(cols, rows, spawnCellX, spawnCellY, loopChance) {
+        const grid = Array.from({ length: rows }, () => Array(cols).fill(1));
+        const stack = [[spawnCellX, spawnCellY]];
+        const directions = [
+            [0, -2],
+            [2, 0],
+            [0, 2],
+            [-2, 0]
+        ];
+
+        grid[spawnCellY][spawnCellX] = 0;
+
+        // DFS maze carving keeps all corridors connected to the spawn root.
+        while (stack.length > 0) {
+            const current = stack[stack.length - 1];
+            const cx = current[0];
+            const cy = current[1];
+            const choices = [];
+
+            for (let i = 0; i < directions.length; i++) {
+                const dx = directions[i][0];
+                const dy = directions[i][1];
+                const nx = cx + dx;
+                const ny = cy + dy;
+
+                if (nx <= 0 || ny <= 0 || nx >= cols - 1 || ny >= rows - 1) {
+                    continue;
+                }
+
+                if (grid[ny][nx] === 1) {
+                    choices.push([dx, dy]);
+                }
+            }
+
+            if (choices.length === 0) {
+                stack.pop();
+                continue;
+            }
+
+            shuffleArray(choices);
+            const selected = choices[0];
+            const dx = selected[0];
+            const dy = selected[1];
+            const nx = cx + dx;
+            const ny = cy + dy;
+
+            grid[cy + Math.floor(dy / 2)][cx + Math.floor(dx / 2)] = 0;
+            grid[ny][nx] = 0;
+            stack.push([nx, ny]);
+        }
+
+        // Add loops so the map feels less like a strict tree maze.
+        for (let y = 1; y < rows - 1; y++) {
+            for (let x = 1; x < cols - 1; x++) {
+                if (grid[y][x] !== 1 || Math.random() >= loopChance) {
+                    continue;
+                }
+
+                const leftAndRightOpen = grid[y][x - 1] === 0 && grid[y][x + 1] === 0;
+                const upAndDownOpen = grid[y - 1][x] === 0 && grid[y + 1][x] === 0;
+                if (leftAndRightOpen || upAndDownOpen) {
+                    grid[y][x] = 0;
+                }
+            }
+        }
+
+        return grid;
+    }
+
+    function carveRectFloor(grid, minX, minY, maxX, maxY) {
+        const rows = grid.length;
+        const cols = grid[0].length;
+        const startX = Math.max(1, minX);
+        const startY = Math.max(1, minY);
+        const endX = Math.min(cols - 2, maxX);
+        const endY = Math.min(rows - 2, maxY);
+
+        for (let y = startY; y <= endY; y++) {
+            for (let x = startX; x <= endX; x++) {
+                grid[y][x] = 0;
+            }
+        }
+    }
+
+    function carveSpawnRoomAndExits(grid, spawnCellX, spawnCellY, roomHalfSize) {
+        const rows = grid.length;
+        const cols = grid[0].length;
+        const doorHalfWidth = 1;
+
+        // Keep a stable, always-open spawn hall around the player.
+        carveRectFloor(
+            grid,
+            spawnCellX - roomHalfSize,
+            spawnCellY - roomHalfSize,
+            spawnCellX + roomHalfSize,
+            spawnCellY + roomHalfSize
+        );
+
+        const exits = [
+            [1, 0],
+            [-1, 0],
+            [0, 1],
+            [0, -1]
+        ];
+
+        for (let i = 0; i < exits.length; i++) {
+            const dir = exits[i];
+            const dx = dir[0];
+            const dy = dir[1];
+            let x = spawnCellX;
+            let y = spawnCellY;
+
+            for (let step = 0; step < Math.max(cols, rows); step++) {
+                x += dx;
+                y += dy;
+
+                if (x <= 0 || y <= 0 || x >= cols - 1 || y >= rows - 1) {
+                    break;
+                }
+
+                const wasFloor = grid[y][x] === 0;
+
+                // Carve wider door openings so room exits are easy to see.
+                if (dx !== 0) {
+                    for (let oy = -doorHalfWidth; oy <= doorHalfWidth; oy++) {
+                        const ny = y + oy;
+                        if (ny > 0 && ny < rows - 1) {
+                            grid[ny][x] = 0;
+                        }
+                    }
+                } else {
+                    for (let ox = -doorHalfWidth; ox <= doorHalfWidth; ox++) {
+                        const nx = x + ox;
+                        if (nx > 0 && nx < cols - 1) {
+                            grid[y][nx] = 0;
+                        }
+                    }
+                }
+
+                // Once we are outside the room and touching existing maze floor,
+                // this exit is connected and can stop.
+                if (step > roomHalfSize && wasFloor) {
+                    break;
+                }
+            }
+        }
+    }
+
+    function forceFrontSpawnEntrance(grid, mazeGrid, spawnCellX, spawnCellY, roomHalfSize) {
+        const rows = grid.length;
+        const cols = grid[0].length;
+        const doorHalfWidth = 1;
+        const dx = 0;
+        const dy = -1; // Camera starts at d=0, so this is straight ahead.
+        let connected = false;
+
+        for (let step = roomHalfSize; step < rows; step++) {
+            const x = spawnCellX + dx * step;
+            const y = spawnCellY + dy * step;
+
+            if (x <= 0 || y <= 0 || x >= cols - 1 || y >= rows - 1) {
+                break;
+            }
+
+            for (let ox = -doorHalfWidth; ox <= doorHalfWidth; ox++) {
+                const nx = x + ox;
+                if (nx > 0 && nx < cols - 1) {
+                    grid[y][nx] = 0;
+                }
+            }
+
+            const hitProcedural =
+                mazeGrid[y][x] === 0 ||
+                (x - 1 > 0 && mazeGrid[y][x - 1] === 0) ||
+                (x + 1 < cols - 1 && mazeGrid[y][x + 1] === 0);
+
+            if (step > roomHalfSize && hitProcedural) {
+                connected = true;
+                break;
+            }
+        }
+
+        if (!connected) {
+            // Fallback: keep the front lane open almost to the map border.
+            for (let y = spawnCellY - roomHalfSize; y > 1; y--) {
+                for (let ox = -doorHalfWidth; ox <= doorHalfWidth; ox++) {
+                    const nx = spawnCellX + ox;
+                    if (nx > 0 && nx < cols - 1) {
+                        grid[y][nx] = 0;
+                    }
+                }
+            }
+        }
+    }
+
+    function connectSpawnRoomToProcedural(grid, mazeGrid, spawnCellX, spawnCellY, roomHalfSize, minLinks) {
+        const rows = grid.length;
+        const cols = grid[0].length;
+        const directions = [
+            [1, 0],
+            [-1, 0],
+            [0, 1],
+            [0, -1]
+        ];
+        let links = 0;
+
+        for (let i = 0; i < directions.length; i++) {
+            if (links >= minLinks) {
+                break;
+            }
+
+            const dx = directions[i][0];
+            const dy = directions[i][1];
+            const doorX = spawnCellX + dx * roomHalfSize;
+            const doorY = spawnCellY + dy * roomHalfSize;
+            let hitX = null;
+            let hitY = null;
+
+            for (let step = roomHalfSize + 1; step < Math.max(cols, rows); step++) {
+                const x = spawnCellX + dx * step;
+                const y = spawnCellY + dy * step;
+                if (x <= 0 || y <= 0 || x >= cols - 1 || y >= rows - 1) {
+                    break;
+                }
+
+                // Target only corridors that already belonged to the procedural maze.
+                if (mazeGrid[y][x] === 0) {
+                    hitX = x;
+                    hitY = y;
+                    break;
+                }
+            }
+
+            if (hitX === null || hitY === null) {
+                continue;
+            }
+
+            let x = doorX;
+            let y = doorY;
+            while (x !== hitX || y !== hitY) {
+                grid[y][x] = 0;
+                if (x !== hitX) x += dx;
+                if (y !== hitY) y += dy;
+            }
+            grid[hitY][hitX] = 0;
+            links += 1;
+        }
+
+        // Fallback: connect to nearest procedural floor if directional links failed.
+        if (links === 0) {
+            let best = null;
+            for (let y = 1; y < rows - 1; y++) {
+                for (let x = 1; x < cols - 1; x++) {
+                    if (mazeGrid[y][x] !== 0) {
+                        continue;
+                    }
+                    const dist = Math.abs(x - spawnCellX) + Math.abs(y - spawnCellY);
+                    if (dist <= roomHalfSize + 1) {
+                        continue;
+                    }
+                    if (!best || dist < best.dist) {
+                        best = { x: x, y: y, dist: dist };
+                    }
+                }
+            }
+
+            if (best) {
+                let x = spawnCellX;
+                let y = spawnCellY;
+                while (x !== best.x) {
+                    grid[y][x] = 0;
+                    x += best.x > x ? 1 : -1;
+                }
+                while (y !== best.y) {
+                    grid[y][x] = 0;
+                    y += best.y > y ? 1 : -1;
+                }
+                grid[best.y][best.x] = 0;
+            }
+        }
+    }
+
+    function widenCorridors(grid, radius) {
+        const rows = grid.length;
+        const cols = grid[0].length;
+        const widened = grid.map((row) => row.slice());
+
+        for (let y = 1; y < rows - 1; y++) {
+            for (let x = 1; x < cols - 1; x++) {
+                if (grid[y][x] !== 0) {
+                    continue;
+                }
+
+                for (let oy = -radius; oy <= radius; oy++) {
+                    for (let ox = -radius; ox <= radius; ox++) {
+                        const nx = x + ox;
+                        const ny = y + oy;
+                        if (nx <= 0 || ny <= 0 || nx >= cols - 1 || ny >= rows - 1) {
+                            continue;
+                        }
+                        widened[ny][nx] = 0;
+                    }
+                }
+            }
+        }
+
+        return widened;
+    }
+
+    function enforceVisibleSpawnFrontDoor(grid, referenceGrid, spawnCellX, spawnCellY) {
+        const rows = grid.length;
+        const cols = grid[0].length;
+
+        const inBounds = (x, y) => x > 0 && y > 0 && x < cols - 1 && y < rows - 1;
+        const roomHalfWidth = 3;
+        const roomHalfDepth = 2;
+        const northWallY = spawnCellY - roomHalfDepth - 1;
+        const corridorHalfWidth = 1;
+
+        // 1) Rebuild a clean spawn room.
+        for (let y = spawnCellY - roomHalfDepth; y <= spawnCellY + roomHalfDepth; y++) {
+            for (let x = spawnCellX - roomHalfWidth; x <= spawnCellX + roomHalfWidth; x++) {
+                if (inBounds(x, y)) {
+                    grid[y][x] = 0;
+                }
+            }
+        }
+
+        // 2) Build a solid front wall facing the player.
+        for (let x = spawnCellX - roomHalfWidth; x <= spawnCellX + roomHalfWidth; x++) {
+            if (inBounds(x, northWallY)) {
+                grid[northWallY][x] = 1;
+            }
+        }
+
+        // 3) Carve a centered doorway in that wall (the visible hole).
+        for (let x = spawnCellX - 1; x <= spawnCellX + 1; x++) {
+            if (inBounds(x, northWallY)) {
+                grid[northWallY][x] = 0;
+            }
+        }
+
+        // 4) Carve a corridor directly behind the doorway until it touches
+        // existing procedural floor (from referenceGrid).
+        let connectionY = 1;
+        for (let y = northWallY - 1; y >= 1; y--) {
+            for (let x = spawnCellX - corridorHalfWidth; x <= spawnCellX + corridorHalfWidth; x++) {
+                if (inBounds(x, y)) {
+                    grid[y][x] = 0;
+                }
+            }
+
+            let touchesProcedural = false;
+            for (let x = spawnCellX - corridorHalfWidth - 1; x <= spawnCellX + corridorHalfWidth + 1; x++) {
+                if (inBounds(x, y) && referenceGrid[y][x] === 0) {
+                    touchesProcedural = true;
+                    break;
+                }
+            }
+
+            if (touchesProcedural && y < northWallY - 1) {
+                connectionY = y;
+                break;
+            }
+        }
+
+        // Open a wider junction where the entry corridor meets the procedural map.
+        for (let x = spawnCellX - 3; x <= spawnCellX + 3; x++) {
+            if (inBounds(x, connectionY)) {
+                grid[connectionY][x] = 0;
+            }
+        }
+
+        // 5) Keep corridor walls for readability, but do not close existing side paths.
+        for (let y = northWallY - 1; y > connectionY; y--) {
+            const leftWallX = spawnCellX - (corridorHalfWidth + 1);
+            const rightWallX = spawnCellX + (corridorHalfWidth + 1);
+            if (inBounds(leftWallX, y) && referenceGrid[y][leftWallX] === 1) {
+                grid[y][leftWallX] = 1;
+            }
+            if (inBounds(rightWallX, y) && referenceGrid[y][rightWallX] === 1) {
+                grid[y][rightWallX] = 1;
+            }
+        }
+    }
+
+    function addInterval(map, key, start, end) {
+        if (!map[key]) {
+            map[key] = [];
+        }
+        map[key].push([start, end]);
+    }
+
+    function mergeIntervals(intervals) {
+        if (!intervals || intervals.length === 0) {
+            return [];
+        }
+
+        const sorted = intervals.slice().sort((a, b) => a[0] - b[0]);
+        const merged = [sorted[0].slice()];
+
+        for (let i = 1; i < sorted.length; i++) {
+            const current = sorted[i];
+            const last = merged[merged.length - 1];
+
+            if (current[0] <= last[1]) {
+                if (current[1] > last[1]) {
+                    last[1] = current[1];
+                }
+            } else {
+                merged.push(current.slice());
+            }
+        }
+
+        return merged;
+    }
+
+    function gridToWallSegments(grid, cellSize, offsetX, offsetY) {
+        const rows = grid.length;
+        const cols = grid[0].length;
+        const horizontalEdges = {};
+        const verticalEdges = {};
+
+        const isFloor = (x, y) => {
+            if (x < 0 || y < 0 || x >= cols || y >= rows) {
+                return false;
+            }
+            return grid[y][x] === 0;
+        };
+
+        for (let y = 0; y < rows; y++) {
+            for (let x = 0; x < cols; x++) {
+                if (grid[y][x] !== 1) {
+                    continue;
+                }
+
+                if (isFloor(x, y - 1)) {
+                    addInterval(horizontalEdges, y, x, x + 1);
+                }
+                if (isFloor(x, y + 1)) {
+                    addInterval(horizontalEdges, y + 1, x, x + 1);
+                }
+                if (isFloor(x - 1, y)) {
+                    addInterval(verticalEdges, x, y, y + 1);
+                }
+                if (isFloor(x + 1, y)) {
+                    addInterval(verticalEdges, x + 1, y, y + 1);
+                }
+            }
+        }
+
+        const segments = [];
+
+        const horizontalKeys = Object.keys(horizontalEdges);
+        for (let i = 0; i < horizontalKeys.length; i++) {
+            const key = horizontalKeys[i];
+            const y = Number(key);
+            const merged = mergeIntervals(horizontalEdges[key]);
+            for (let j = 0; j < merged.length; j++) {
+                const interval = merged[j];
+                segments.push([
+                    offsetX + interval[0] * cellSize,
+                    offsetY + y * cellSize,
+                    offsetX + interval[1] * cellSize,
+                    offsetY + y * cellSize
+                ]);
+            }
+        }
+
+        const verticalKeys = Object.keys(verticalEdges);
+        for (let i = 0; i < verticalKeys.length; i++) {
+            const key = verticalKeys[i];
+            const x = Number(key);
+            const merged = mergeIntervals(verticalEdges[key]);
+            for (let j = 0; j < merged.length; j++) {
+                const interval = merged[j];
+                segments.push([
+                    offsetX + x * cellSize,
+                    offsetY + interval[0] * cellSize,
+                    offsetX + x * cellSize,
+                    offsetY + interval[1] * cellSize
+                ]);
+            }
+        }
+
+        return segments;
+    }
+
+    function createWalls() {
+        const wallHeight = 100;
+        const cellSize = 40;
+        const cols = 15;
+        const rows = 15;
+        const loopChance = 0.16;
+        const corridorWidenRadius = 1;
+        const roomHW = 3;
+        const roomHD = 3;
+        const entranceHW = 1;
+
         game.walls.length = 0;
 
-        const leftX = 240;
-        const rightX = 360;
-        const nearY = 540;
-        const farY = 60;
+        const spawnCellX = Math.floor(cols / 2);
+        const spawnCellY = Math.floor(rows / 2);
 
-        // Left wall
-        game.walls.push(new Wall(
-            game,
-            [leftX, farY, leftX, nearY],
-            wallHeight,
-            '#8B7355',
-            game.wallTexture
-        ));
+        // 1) Generate base maze.
+        const grid = generateConnectedCorridorGrid(cols, rows, spawnCellX, spawnCellY, loopChance);
 
-        // Right wall
-        game.walls.push(new Wall(
-            game,
-            [rightX, farY, rightX, nearY],
-            wallHeight,
-            '#8B7355',
-            game.wallTexture
-        ));
+        // 2) Widen corridors.
+        const wide = widenCorridors(grid, corridorWidenRadius);
 
-        // Corridor end wall (front)
-        game.walls.push(new Wall(
-            game,
-            [leftX, farY, rightX, farY],
-            wallHeight,
-            '#8B7355',
-            game.wallTexture
-        ));
+        // 3) Carve a large spawn room in the center.
+        for (let y = spawnCellY - roomHD; y <= spawnCellY + roomHD; y++) {
+            for (let x = spawnCellX - roomHW; x <= spawnCellX + roomHW; x++) {
+                if (x > 0 && y > 0 && x < cols - 1 && y < rows - 1) {
+                    wide[y][x] = 0;
+                }
+            }
+        }
 
-        // Corridor back wall
-        game.walls.push(new Wall(
-            game,
-            [leftX, nearY, rightX, nearY],
-            wallHeight,
-            '#8B7355',
-            game.wallTexture
-        ));
-        
-        Logger.info(`✓ Created ${game.walls.length} walls with tree texture`);
+        // 4) Carve entrance corridors in all 4 directions until they
+        //    connect to existing maze floor.
+        const dirs = [
+            [0, -1],  // north (straight ahead for d=0)
+            [0, 1],   // south
+            [-1, 0],  // west
+            [1, 0]    // east
+        ];
+
+        for (let d = 0; d < dirs.length; d++) {
+            const dx = dirs[d][0];
+            const dy = dirs[d][1];
+            let connected = false;
+
+            for (let step = 1; step < Math.max(cols, rows); step++) {
+                const cx = spawnCellX + dx * (roomHW + step);
+                const cy = spawnCellY + dy * (roomHD + step);
+
+                if (cx <= 0 || cy <= 0 || cx >= cols - 1 || cy >= rows - 1) {
+                    break;
+                }
+
+                // Check if this cell already touches widened maze floor.
+                if (wide[cy][cx] === 0) {
+                    connected = true;
+                }
+
+                // Carve the entrance (3 cells wide).
+                if (dx !== 0) {
+                    for (let oy = -entranceHW; oy <= entranceHW; oy++) {
+                        const ny = cy + oy;
+                        if (ny > 0 && ny < rows - 1) {
+                            wide[ny][cx] = 0;
+                        }
+                    }
+                } else {
+                    for (let ox = -entranceHW; ox <= entranceHW; ox++) {
+                        const nx = cx + ox;
+                        if (nx > 0 && nx < cols - 1) {
+                            wide[cy][nx] = 0;
+                        }
+                    }
+                }
+
+                if (connected) {
+                    break;
+                }
+            }
+        }
+
+        // 5) Convert final grid to wall segments (single source of truth).
+        const offsetX = Math.floor((W - cols * cellSize) / 2);
+        const offsetY = Math.floor((H - rows * cellSize) / 2);
+        const wallSegments = gridToWallSegments(wide, cellSize, offsetX, offsetY);
+
+        for (let i = 0; i < wallSegments.length; i++) {
+            game.walls.push(new Wall(
+                game,
+                wallSegments[i],
+                wallHeight,
+                '#8B7355',
+                game.wallTexture
+            ));
+        }
+
+        const spawn = {
+            x: offsetX + (spawnCellX + 0.5) * cellSize,
+            y: offsetY + (spawnCellY + 0.5) * cellSize
+        };
+
+        Logger.info(`✓ Created ${game.walls.length} procedural corridor walls`);
+        return spawn;
     }
     
     function startGame() {
         // Create camera (from camera.js)
         game.camera = new Camera(game, W, H, hW, hH, TSPEED, WSPEED);
 
-        // Create textured walls for the 3D corridor feel.
-        createWalls();
+        // Create procedural connected corridors and place player at map spawn.
+        const spawn = createWalls();
+        if (spawn) {
+            game.camera.x = spawn.x;
+            game.camera.y = spawn.y;
+            game.camera.d = 0;
+        }
 
         // Initialize isolated weapon modules when present.
         if (typeof createWeaponState === 'function') {
