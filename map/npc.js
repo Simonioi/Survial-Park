@@ -16,7 +16,7 @@ class NPC {
         this.dx = 0;
         this.dy = 0;
         this.dz = 0;
-        this.fov = this.camera.fov;
+        this.fov = this.camera ? this.camera.fov : 0;
         this.scale = 0;
         this.angle = 0;
         this.color = '#FF6600'; // Orange color for 3D representation
@@ -48,11 +48,128 @@ class NPC {
         return false;
     }
 
+    /**
+     * Update NPC position - chase player with wall collision detection
+     */
+    update() {
+        // Don't move if dead
+        if (this.isDead) return;
+        
+        // Get camera reference (with fallback if not set in constructor)
+        if (!this.camera && this.game && this.game.camera) {
+            this.camera = this.game.camera;
+        }
+        
+        // Still no camera? Can't move
+        if (!this.camera) return;
+
+        const cam = this.camera;
+        
+        // Calculate direction to player
+        const dx = cam.x - this.x;
+        const dy = cam.y - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Don't move if too close (avoid jittering)
+        if (distance < 20) return;
+        
+        // Normalize direction and apply speed
+        const speed = 0.25 // NPC movement speed
+        const moveX = (dx / distance) * speed;
+        const moveY = (dy / distance) * speed;
+        
+        // Calculate new position
+        const newX = this.x + moveX;
+        const newY = this.y + moveY;
+        
+        // Check collision with walls
+        const collisionRadius = 15; // NPC collision radius
+        if (!this.checkWallCollision(newX, newY, collisionRadius)) {
+            // No collision - update position
+            this.x = newX;
+            this.y = newY;
+        } else {
+            // Try sliding along walls - move only on one axis at a time
+            if (!this.checkWallCollision(newX, this.y, collisionRadius)) {
+                this.x = newX;
+            } else if (!this.checkWallCollision(this.x, newY, collisionRadius)) {
+                this.y = newY;
+            }
+            // If both fail, NPC stays in place (blocked by wall)
+        }
+    }
+
+    /**
+     * Check if a position collides with any wall
+     * @param {number} x - X position to check
+     * @param {number} y - Y position to check
+     * @param {number} radius - Collision radius
+     * @returns {boolean} True if collision detected
+     */
+    checkWallCollision(x, y, radius) {
+        if (!this.game || !this.game.walls) return false;
+        
+        const walls = this.game.walls;
+        if (walls.length === 0) return false;
+        
+        for (let wall of walls) {
+            if (!wall) continue;
+            
+            // Check distance from point to line segment
+            const dist = this.pointToSegmentDistance(x, y, wall.x1, wall.y1, wall.x2, wall.y2);
+            if (dist < radius) {
+                return true; // Collision detected
+            }
+        }
+        
+        return false; // No collision
+    }
+
+    /**
+     * Calculate distance from point to line segment
+     * @param {number} px - Point X
+     * @param {number} py - Point Y
+     * @param {number} x1 - Segment start X
+     * @param {number} y1 - Segment start Y
+     * @param {number} x2 - Segment end X
+     * @param {number} y2 - Segment end Y
+     * @returns {number} Distance to segment
+     */
+    pointToSegmentDistance(px, py, x1, y1, x2, y2) {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const lengthSquared = dx * dx + dy * dy;
+        
+        if (lengthSquared === 0) {
+            // Segment is a point
+            return Math.sqrt((px - x1) * (px - x1) + (py - y1) * (py - y1));
+        }
+        
+        // Calculate projection of point onto line (parameter t)
+        let t = ((px - x1) * dx + (py - y1) * dy) / lengthSquared;
+        t = Math.max(0, Math.min(1, t)); // Clamp to [0, 1]
+        
+        // Calculate closest point on segment
+        const closestX = x1 + t * dx;
+        const closestY = y1 + t * dy;
+        
+        // Return distance to closest point
+        return Math.sqrt((px - closestX) * (px - closestX) + (py - closestY) * (py - closestY));
+    }
+
     loop() {
         // Don't render dead mobs
         if (this.isDead) {
             return null;
         }
+
+        // Get camera reference (with fallback if not set in constructor)
+        if (!this.camera && this.game && this.game.camera) {
+            this.camera = this.game.camera;
+        }
+        
+        // No camera? Can't render
+        if (!this.camera) return null;
 
         const cam = this.camera;
 
