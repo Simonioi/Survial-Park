@@ -16,7 +16,7 @@ function createGameLoop(game, W, H) {
     const npcVideoSpeed = 2.0;
     const npcVideoSpeeds = {
         default: npcVideoSpeed,
-        SwordRex: 2.0 // SwordRex en x2
+        SwordRex: 1.0 // SwordRex en x1 (test)
     };
     // Config vidéos
     npcVideos.default.loop = true;

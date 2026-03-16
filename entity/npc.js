@@ -268,6 +268,6 @@ class SwordRex extends NPC {
         this.attackDamage = 20; // 20 de dégâts
         this.color = '#00BFFF'; // Couleur différente si fallback cercle
         this.videoKey = 'SwordRex'; // Pour le rendu vidéo
-        this.moveSpeed = 0.32; // un peu plus rapide que le monstre de base
+        this.moveSpeed = 0.50; // un peu plus rapide que le monstre de base
     }
 }
