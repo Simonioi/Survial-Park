@@ -219,10 +219,11 @@ class NPC {
         while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
         while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
 
-        // Si trop sur le côté, hors champ
+        // Allow edge visibility while rejecting sprites fully outside FOV.
         const fovDeg = cam.fovAngle || 75;
         const halfFovRad = helpers.radians(fovDeg * 0.5);
-        if (Math.abs(angleDiff) > halfFovRad) {
+        const spriteAngularRadius = Math.atan2(this.size * 0.5, Math.max(dis, 1));
+        if (Math.abs(angleDiff) > (halfFovRad + spriteAngularRadius)) {
             return null;
         }
 

@@ -168,28 +168,72 @@ function createGameLoop(game, W, H) {
             }
         }
         
-        // Render NPCs from far to near, hidden when behind wall columns.
-        npcRenderData.sort((a, b) => a.distance - b.distance);
+        // Render NPCs with per-column wall clipping so partial visibility works.
+        npcRenderData.sort((a, b) => b.distance - a.distance);
         for (let data of npcRenderData) {
-            const sx = Math.floor(data.x);
-            if (sx >= 0 && sx < zBuffer.length && data.distance > zBuffer[sx]) {
-                continue;
-            }
             // Choix de la vidéo selon le type de monstre
             const key = (data.npc && data.npc.videoKey) ? data.npc.videoKey : 'default';
+
+            const imageSize = data.scale * 2;
+            const hasVideo = npcVideoLoaded[key] && npcVideos[key] && npcVideos[key].videoWidth > 0 && npcVideos[key].videoHeight > 0;
+            const video = hasVideo ? npcVideos[key] : null;
+            const videoRatio = hasVideo ? (video.videoWidth / video.videoHeight) : 1;
+            const imageWidth = imageSize * videoRatio;
+            const imageHeight = imageSize;
+            const spriteLeft = data.x - imageWidth / 2;
+            const spriteTop = data.y - imageHeight / 2;
+            const startX = Math.max(0, Math.floor(spriteLeft));
+            const endX = Math.min(W - 1, Math.ceil(spriteLeft + imageWidth) - 1);
+
+            if (startX > endX) {
+                continue;
+            }
+
+            let hasVisibleColumn = false;
+
+            if (hasVideo) {
+                for (let screenX = startX; screenX <= endX; screenX++) {
+                    if (data.distance > zBuffer[screenX]) {
+                        continue;
+                    }
+
+                    const u = (screenX + 0.5 - spriteLeft) / imageWidth;
+                    if (u < 0 || u > 1) {
+                        continue;
+                    }
+
+                    hasVisibleColumn = true;
+                    let srcX = Math.floor(u * video.videoWidth);
+                    if (srcX < 0) srcX = 0;
+                    if (srcX >= video.videoWidth) srcX = video.videoWidth - 1;
+
+                    game.ctxNPC.drawImage(
+                        video,
+                        srcX,
+                        0,
+                        1,
+                        video.videoHeight,
+                        screenX,
+                        spriteTop,
+                        1,
+                        imageHeight
+                    );
+                }
+            } else {
+                for (let screenX = startX; screenX <= endX; screenX++) {
+                    if (data.distance <= zBuffer[screenX]) {
+                        hasVisibleColumn = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!hasVisibleColumn) {
+                continue;
+            }
+
             if (npcVideoLoaded[key]) {
-                const video = npcVideos[key];
-                const imageSize = data.scale * 2;
-                const videoRatio = video.videoWidth / video.videoHeight;
-                const imageWidth = imageSize * videoRatio;
-                const imageHeight = imageSize;
-                game.ctxNPC.drawImage(
-                    video,
-                    data.x - imageWidth / 2,
-                    data.y - imageHeight / 2,
-                    imageWidth,
-                    imageHeight
-                );
+                // Already drawn above strip-by-strip for proper wall clipping.
             } else {
                 draw.circle(game.ctxNPC, data.x, data.y, data.scale, data.color);
             }
