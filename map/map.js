@@ -149,6 +149,14 @@
         tryLoad(0);
     }
     
+    function createWalls(savedMaze) {
+        const wallHeight = 100;
+        const cellSize = savedMaze ? savedMaze.cellSize : 70;
+        const cols = savedMaze ? savedMaze.cols : 41;
+        const rows = savedMaze ? savedMaze.rows : 41;
+        const loopChance = 0.08;
+        const spawnSafeRadius = 1;   // cells of clearance around spawn
+        
     function getMapModeFromInput(modeFromMenu) {
         const urlParams = new URLSearchParams(window.location.search);
         const fromUrl = urlParams.get('mapMode');

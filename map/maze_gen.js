@@ -85,6 +85,16 @@ const MazeGen = (function() {
             }
         }
 
+        // Ensure the outer border is solid walls so the player can never escape.
+        for (let x = 0; x < cols; x++) {
+            grid[0][x] = 1;
+            grid[rows - 1][x] = 1;
+        }
+        for (let y = 0; y < rows; y++) {
+            grid[y][0] = 1;
+            grid[y][cols - 1] = 1;
+        }
+
         return grid;
     }
 
@@ -186,6 +196,16 @@ const MazeGen = (function() {
                 ]);
             }
         }
+
+        // Add solid boundary walls around the entire maze perimeter
+        const left   = offsetX;
+        const top    = offsetY;
+        const right  = offsetX + cols * cellSize;
+        const bottom = offsetY + rows * cellSize;
+        segments.push([left,  top,    right, top]);    // top edge
+        segments.push([left,  bottom, right, bottom]); // bottom edge
+        segments.push([left,  top,    left,  bottom]); // left edge
+        segments.push([right, top,    right, bottom]); // right edge
 
         return segments;
     }

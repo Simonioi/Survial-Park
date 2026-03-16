@@ -32,11 +32,24 @@
 
             const rect = canvas2D.getBoundingClientRect();
 
-            // Map mouse position to world coordinates accounting for CSS scaling
+            // Map mouse position to world coordinates accounting for CSS scaling + zoom
             const scaleX = canvas2D.width / rect.width;
             const scaleY = canvas2D.height / rect.height;
-            const worldX = (e.clientX - rect.left) * scaleX;
-            const worldY = (e.clientY - rect.top) * scaleY;
+            var canvasX = (e.clientX - rect.left) * scaleX;
+            var canvasY = (e.clientY - rect.top) * scaleY;
+
+            // Reverse the zoom transform applied by Map2DRenderer
+            var zoom = (window.game.map2DRenderer && window.game.map2DRenderer.zoom) || 1;
+            var g = window.game;
+            var ox = g.mazeOffsetX || 0;
+            var oy = g.mazeOffsetY || 0;
+            var cols = g.mazeGrid ? g.mazeGrid[0].length : 0;
+            var rows = g.mazeGrid ? g.mazeGrid.length : 0;
+            var cs  = g.mazeCellSize || 1;
+            var mazeCX = ox + (cols * cs) / 2;
+            var mazeCY = oy + (rows * cs) / 2;
+            var worldX = (canvasX - canvas2D.width / 2) / zoom + mazeCX;
+            var worldY = (canvasY - canvas2D.height / 2) / zoom + mazeCY;
 
             // Check the target isn't inside a wall
             if (hitsWall(worldX, worldY, window.game.player.collisionRadius)) {
