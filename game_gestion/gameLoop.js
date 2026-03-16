@@ -63,6 +63,29 @@ function createGameLoop(game, W, H) {
     tryLoadNpcVideo('default', 0);
     tryLoadNpcVideo('SwordRex', 0);
 
+    // Son des monstres normaux (clickers) — une seule instance partagée pour éviter la superposition
+    const clickerSoundCandidates = [
+        'Ressource/Clickers_sound.mp3',
+        '../Ressource/Clickers_sound.mp3'
+    ];
+    const clickerAudio = new Audio();
+    clickerAudio.loop = true;
+    clickerAudio.volume = 0.5;
+    let clickerAudioLoaded = false;
+
+    function tryLoadClickerSound(index) {
+        if (index >= clickerSoundCandidates.length) return;
+        clickerAudio.src = clickerSoundCandidates[index];
+        clickerAudio.addEventListener('canplaythrough', () => {
+            clickerAudioLoaded = true;
+        }, { once: true });
+        clickerAudio.addEventListener('error', () => {
+            tryLoadClickerSound(index + 1);
+        }, { once: true });
+        clickerAudio.load();
+    }
+    tryLoadClickerSound(0);
+
     // Cache du wrapper de la mini-carte 2D pour pouvoir couper son rendu quand elle est cachée
     const map2DWrapper = document.getElementById('map2d-wrapper');
     
@@ -148,6 +171,16 @@ function createGameLoop(game, W, H) {
         // Weapon update uses projected NPCs for center-screen hitscan.
         if (game.weapon && typeof updateWeaponSystem === 'function') {
             updateWeaponSystem(game, npcRenderData, now);
+        }
+
+        // Contrôle son clicker : joue si au moins un monstre normal est vivant, sinon pause
+        if (clickerAudioLoaded) {
+            const anyNormalNpc = game.npcs.some(npc => npc && !npc.isDead && (npc.videoKey || 'default') === 'default');
+            if (anyNormalNpc && clickerAudio.paused) {
+                clickerAudio.play().catch(e => {});
+            } else if (!anyNormalNpc && !clickerAudio.paused) {
+                clickerAudio.pause();
+            }
         }
 
         // Contrôle lecture vidéo pour chaque type de monstre
