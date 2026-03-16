@@ -42,12 +42,12 @@ class Floor {
     render(ctx, width, height, camera) {
         const horizon = Math.floor(height * 0.5);
 
-        // Retro FPS sky
-        ctx.fillStyle = '#4fa6ff';
+        // Night sky for horror atmosphere.
+        ctx.fillStyle = '#0b1630';
         ctx.fillRect(0, 0, width, horizon);
 
         // Horizon blend band
-        ctx.fillStyle = 'rgba(255,255,255,0.08)';
+        ctx.fillStyle = 'rgba(120,150,220,0.12)';
         ctx.fillRect(0, horizon - 2, width, 4);
 
         const viewHeight = height - horizon;

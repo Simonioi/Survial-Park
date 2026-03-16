@@ -5,8 +5,10 @@
 (function() {
     'use strict';
 
-    const W = Math.min(600, window.innerHeight - 20); // Smaller canvas size, max 600px
-    const H = Math.min(600, window.innerHeight - 20); // Smaller canvas size, max 600px
+    const viewportW = Math.max(320, window.innerWidth - 40);
+    const viewportH = Math.max(320, window.innerHeight - 20);
+    const H = Math.min(560, viewportH); // Slightly reduced height
+    const W = Math.min(980, Math.floor(viewportW * 0.82), Math.floor(H * 1.6)); // Reduced rectangular view
     const hW = W / 2; // half-width and half-height for centering
     const hH = H / 2; // half-width and half-height for centering
     const TSPEED = 2; // turning speed
