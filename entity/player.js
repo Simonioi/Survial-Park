@@ -20,6 +20,7 @@ class Player {
         this.view = { x: null, y: null, r: 70 };
         this.collisionRadius = 10;
         this.mouseSensitivity = 0.15;
+        this.lastUpdateTime = performance.now();
 
         // Health system — player starts with 100 HP
         this.hpId = hp.createEntity('Player', 100);
@@ -134,36 +135,50 @@ class Player {
         // Freeze all input when dead.
         if (this.isDead) return;
 
+        const now = performance.now();
+        const deltaMs = now - this.lastUpdateTime;
+        this.lastUpdateTime = now;
+        // 60 FPS baseline => movement stays stable even when framerate changes.
+        const frameScale = Math.max(0.2, Math.min(2.5, deltaMs / (1000 / 60)));
+        const moveSpeed = this.WSPEED * frameScale * 2;
+
         // Smooth per-frame movement based on held keys.
         const keys = this.game.keys;
+        const angle = helpers.radians(this.d);
+        const sinA = Math.sin(angle);
+        const cosA = Math.cos(angle);
+
+        let moveX = 0;
+        let moveY = 0;
 
         // Z / Arrow Up = forward
         if (keys['KeyW'] || keys['ArrowUp']) {
-            this.moveWithCollision(
-                Math.sin(helpers.radians(this.d)) * this.WSPEED,
-                -Math.cos(helpers.radians(this.d)) * this.WSPEED
-            );
+            moveX += sinA;
+            moveY += -cosA;
         }
         // S / Arrow Down = backward
         if (keys['KeyS'] || keys['ArrowDown']) {
-            this.moveWithCollision(
-                -Math.sin(helpers.radians(this.d)) * this.WSPEED,
-                Math.cos(helpers.radians(this.d)) * this.WSPEED
-            );
+            moveX += -sinA;
+            moveY += cosA;
         }
 
         // Q / Arrow Left = strafe left
         if (keys['KeyA'] || keys['ArrowLeft']) {
-            this.moveWithCollision(
-                -Math.cos(helpers.radians(this.d)) * this.WSPEED,
-                -Math.sin(helpers.radians(this.d)) * this.WSPEED
-            );
+            moveX += -cosA;
+            moveY += -sinA;
         }
         // D / Arrow Right = strafe right
         if (keys['KeyD'] || keys['ArrowRight']) {
+            moveX += cosA;
+            moveY += sinA;
+        }
+
+        // Normalize so diagonal movement doesn't get faster than straight movement.
+        const moveLength = Math.sqrt(moveX * moveX + moveY * moveY);
+        if (moveLength > 0) {
             this.moveWithCollision(
-                Math.cos(helpers.radians(this.d)) * this.WSPEED,
-                Math.sin(helpers.radians(this.d)) * this.WSPEED
+                (moveX / moveLength) * moveSpeed,
+                (moveY / moveLength) * moveSpeed
             );
         }
 

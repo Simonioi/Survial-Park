@@ -24,7 +24,7 @@ class NPC {
         this.scaleRatio = 0;
         this.size = 100;
         this.zIndex = 0;
-        this.moveSpeed = 0.25;
+        this.moveSpeed = 0.8;
         
         // Health system - mob dies after 2 hits
         this.hpId = hp.createEntity(`Mob_${i}`, 2);
@@ -269,6 +269,6 @@ class SwordRex extends NPC {
         this.attackDamage = 20; // 20 de dégâts
         this.color = '#00BFFF'; // Couleur différente si fallback cercle
         this.videoKey = 'SwordRex'; // Pour le rendu vidéo
-        this.moveSpeed = 0.50; // un peu plus rapide que le monstre de base
+        this.moveSpeed = 1.5; // plus rapide que le monstre de base
     }
 }
