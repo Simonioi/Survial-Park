@@ -57,6 +57,28 @@ class DevMode {
     }
 
     /**
+     * Spawn un Sword Rex à une position aléatoire
+     */
+    spawnSwordRex() {
+        const W = this.game.canvas2D.width;
+        const H = this.game.canvas2D.height;
+        const hH = H / 2;
+        const npcIndex = this.game.npcs.length;
+        const rex = new SwordRex(this.game, npcIndex, undefined, undefined, W, H, hH);
+
+        this.game.npcs.push(rex);
+
+        if (this.game.map2DRenderer) {
+            this.game.map2DRenderer.addNPC(rex);
+        }
+
+        Logger.npcs.spawned(npcIndex, rex.x, rex.y);
+        this.updateNPCCount();
+        this.syncToLocalStorage();
+        return rex;
+    }
+
+    /**
      * Clear all NPCs from 3D view, 2D map, and dev mode
      */
     clearAllNPCs() {
@@ -161,6 +183,12 @@ function initDevMode(game) {
 function spawnNPC() {
     if (window.devMode) {
         window.devMode.spawnNPC();
+    }
+}
+
+function spawnSwordRex() {
+    if (window.devMode) {
+        window.devMode.spawnSwordRex();
     }
 }
 

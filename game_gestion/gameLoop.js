@@ -4,39 +4,64 @@
  */
 function createGameLoop(game, W, H) {
     // Load NPC video for 3D rendering with animation
-    const npcVideo = document.createElement('video');
-    let npcVideoLoaded = false;
-    const npcVideoSpeed = 2.0; // Variable to control video playback speed (1.0 = normal)
-    npcVideo.loop = true;
-    npcVideo.muted = true;
-    npcVideo.playsInline = true;
-    npcVideo.playbackRate = npcVideoSpeed;
-    
-    const npcVideoCandidates = [
-        'Ressource/Video_de_Monstre_Sans_Fond.mp4', 
-        '../Ressource/Video_de_Monstre_Sans_Fond.mp4'
-    ];
-    
-    const tryLoadNpcVideo = (index) => {
-        if (index >= npcVideoCandidates.length) {
-            Logger.warn('NPC video not found, using circle fallback');
-            return;
-        }
+    // Gestion multi-monstres : vidéos différentes
+    const npcVideos = {
+        default: document.createElement('video'),
+        SwordRex: document.createElement('video')
+    };
+    const npcVideoLoaded = {
+        default: false,
+        SwordRex: false
+    };
+    const npcVideoSpeed = 2.0;
+    const npcVideoSpeeds = {
+        default: npcVideoSpeed,
+        SwordRex: 2.0 // SwordRex en x2
+    };
+    // Config vidéos
+    npcVideos.default.loop = true;
+    npcVideos.default.muted = true;
+    npcVideos.default.playsInline = true;
+    npcVideos.default.playbackRate = npcVideoSpeeds.default;
+    npcVideos.SwordRex.loop = true;
+    npcVideos.SwordRex.muted = true;
+    npcVideos.SwordRex.playsInline = true;
+    npcVideos.SwordRex.playbackRate = npcVideoSpeeds.SwordRex;
 
-        npcVideo.src = npcVideoCandidates[index];
-        npcVideo.addEventListener('loadeddata', () => {
-            npcVideoLoaded = true;
-            npcVideo.playbackRate = npcVideoSpeed; // Apply speed after video is loaded
-            npcVideo.pause(); // Start paused, will play when NPCs move
-            Logger.info('✓ NPC video loaded (Video_de_Monstre_Sans_Fond.mp4)');
-        });
-        npcVideo.addEventListener('error', () => {
-            tryLoadNpcVideo(index + 1);
-        });
-        npcVideo.load();
+    // Vidéos à charger
+    const npcVideoCandidates = {
+        default: [
+            'Ressource/Video_de_Monstre_Sans_Fond.mp4',
+            '../Ressource/Video_de_Monstre_Sans_Fond.mp4'
+        ],
+        SwordRex: [
+            'Ressource/SwordRex.webm',
+            '../Ressource/SwordRex.webm'
+        ]
     };
 
-    tryLoadNpcVideo(0);
+    function tryLoadNpcVideo(key, index) {
+        const candidates = npcVideoCandidates[key];
+        const video = npcVideos[key];
+        if (index >= candidates.length) {
+            Logger.warn(`NPC video not found for ${key}, using circle fallback`);
+            return;
+        }
+        video.src = candidates[index];
+        video.addEventListener('loadeddata', () => {
+            npcVideoLoaded[key] = true;
+            video.playbackRate = npcVideoSpeeds[key] || npcVideoSpeeds.default;
+            video.pause();
+            Logger.info(`✓ NPC video loaded (${candidates[index]})`);
+        });
+        video.addEventListener('error', () => {
+            tryLoadNpcVideo(key, index + 1);
+        });
+        video.load();
+    }
+
+    tryLoadNpcVideo('default', 0);
+    tryLoadNpcVideo('SwordRex', 0);
 
     // Cache du wrapper de la mini-carte 2D pour pouvoir couper son rendu quand elle est cachée
     const map2DWrapper = document.getElementById('map2d-wrapper');
@@ -119,21 +144,21 @@ function createGameLoop(game, W, H) {
             updateWeaponSystem(game, npcRenderData, now);
         }
 
-        // Control video playback based on NPC movement
-        if (npcVideoLoaded) {
-            let anyNPCMoving = false;
-            for (let npc of game.npcs) {
-                if (npc && npc.isMoving && !npc.isDead) {
-                    anyNPCMoving = true;
-                    break;
+        // Contrôle lecture vidéo pour chaque type de monstre
+        for (const key of Object.keys(npcVideos)) {
+            if (npcVideoLoaded[key]) {
+                let anyMoving = false;
+                for (let npc of game.npcs) {
+                    if (npc && npc.isMoving && !npc.isDead && ((npc.videoKey || 'default') === key)) {
+                        anyMoving = true;
+                        break;
+                    }
                 }
-            }
-            
-            // Play video when any NPC is moving, pause when all are stationary
-            if (anyNPCMoving && npcVideo.paused) {
-                npcVideo.play().catch(e => {}); // Silent catch for autoplay restrictions
-            } else if (!anyNPCMoving && !npcVideo.paused) {
-                npcVideo.pause();
+                if (anyMoving && npcVideos[key].paused) {
+                    npcVideos[key].play().catch(e => {});
+                } else if (!anyMoving && !npcVideos[key].paused) {
+                    npcVideos[key].pause();
+                }
             }
         }
         
@@ -144,16 +169,16 @@ function createGameLoop(game, W, H) {
             if (sx >= 0 && sx < zBuffer.length && data.distance > zBuffer[sx]) {
                 continue;
             }
-
-            if (npcVideoLoaded) {
+            // Choix de la vidéo selon le type de monstre
+            const key = (data.npc && data.npc.videoKey) ? data.npc.videoKey : 'default';
+            if (npcVideoLoaded[key]) {
+                const video = npcVideos[key];
                 const imageSize = data.scale * 2;
-                // Preserve video aspect ratio
-                const videoRatio = npcVideo.videoWidth / npcVideo.videoHeight;
+                const videoRatio = video.videoWidth / video.videoHeight;
                 const imageWidth = imageSize * videoRatio;
                 const imageHeight = imageSize;
-                
                 game.ctxNPC.drawImage(
-                    npcVideo,
+                    video,
                     data.x - imageWidth / 2,
                     data.y - imageHeight / 2,
                     imageWidth,

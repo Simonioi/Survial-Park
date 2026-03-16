@@ -72,6 +72,30 @@ const SaveSystem = {
             return 0;
         }
 
+        const sanitizeLoadedPos = (x, y) => {
+            // Prefer explicit spawn cells bounds when available (kill-room and maze)
+            if (Array.isArray(game.mapSpawnCells) && game.mapSpawnCells.length > 0) {
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                for (let i = 0; i < game.mapSpawnCells.length; i++) {
+                    const c = game.mapSpawnCells[i];
+                    if (c.x < minX) minX = c.x;
+                    if (c.y < minY) minY = c.y;
+                    if (c.x > maxX) maxX = c.x;
+                    if (c.y > maxY) maxY = c.y;
+                }
+                return {
+                    x: Math.min(maxX, Math.max(minX, x)),
+                    y: Math.min(maxY, Math.max(minY, y))
+                };
+            }
+
+            // Fallback to canvas bounds
+            return {
+                x: Math.min(W - 10, Math.max(10, x)),
+                y: Math.min(H - 10, Math.max(10, y))
+            };
+        };
+
         try {
             const npcs = JSON.parse(npcData);
             
@@ -83,7 +107,8 @@ const SaveSystem = {
 
             // Spawn NPCs from stored data
             npcs.forEach((npcInfo, index) => {
-                const npc = new NPC(game, index, npcInfo.x, npcInfo.y, W, H, hH);
+                const safePos = sanitizeLoadedPos(npcInfo.x, npcInfo.y);
+                const npc = new NPC(game, index, safePos.x, safePos.y, W, H, hH);
                 
                 // Restore dead state if NPC was dead
                 if (npcInfo.isDead) {

@@ -24,6 +24,7 @@ class NPC {
         this.scaleRatio = 0;
         this.size = 100;
         this.zIndex = 0;
+        this.moveSpeed = 0.25;
         
         // Health system - mob dies after 2 hits
         this.hpId = hp.createEntity(`Mob_${i}`, 2);
@@ -93,7 +94,7 @@ class NPC {
         }
         
         // Normalize direction and apply speed
-        const speed = 0.25 // NPC movement speed
+        const speed = this.moveSpeed; // NPC movement speed
         const moveX = (dx / distance) * speed;
         const moveY = (dy / distance) * speed;
         
@@ -255,5 +256,18 @@ class NPC {
             distance: correctedDistance,
             npc: this
         };
+    }
+}
+
+// Deuxième monstre : Sword Rex
+class SwordRex extends NPC {
+    constructor(game, i, x, y, W, H, hH) {
+        super(game, i, x, y, W, H, hH);
+        // Spécificités Sword Rex
+        this.hpId = hp.createEntity(`SwordRex_${i}`, 5); // 5 de vie
+        this.attackDamage = 20; // 20 de dégâts
+        this.color = '#00BFFF'; // Couleur différente si fallback cercle
+        this.videoKey = 'SwordRex'; // Pour le rendu vidéo
+        this.moveSpeed = 0.32; // un peu plus rapide que le monstre de base
     }
 }
