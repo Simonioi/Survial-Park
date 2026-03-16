@@ -24,6 +24,7 @@
         walls: [],
         floor: null,
         wallTexture: null,
+        mossyWallTexture: null,
         map2DRenderer: null,
         keys: {},
         animationId: null,
@@ -67,7 +68,7 @@
         game.floor = new Floor(game);
 
         // Wait for floor and wall textures before starting the game loop.
-        let pendingAssets = 2;
+        let pendingAssets = 3;
         let hasStarted = false;
 
         // --- MODIF POUR LE MENU ---
@@ -90,6 +91,7 @@
 
         loadFloorTexture(onAssetReady);
         loadWallTexture(onAssetReady);
+        loadMossyWallTexture(onAssetReady);
     }
 
     function loadFloorTexture(onDone) {
@@ -138,6 +140,37 @@
             Logger.wrapImageLoad(wallTexture, 'Wall texture (tree_wall.jpg)', path,
                 () => {
                     game.wallTexture = wallTexture;
+                    if (onDone) onDone();
+                },
+                () => {
+                    tryLoad(index + 1);
+                }
+            );
+        };
+
+        tryLoad(0);
+    }
+
+    function loadMossyWallTexture(onDone) {
+        Logger.debug('Loading mossy wall texture...');
+        const mossyWallTextureCandidates = [
+            'Ressource/Mossy_wall.jpg',
+            '../Ressource/Mossy_wall.jpg'
+        ];
+
+        const tryLoad = (index) => {
+            if (index >= mossyWallTextureCandidates.length) {
+                Logger.info('Mossy wall texture not found, using default wall texture for kill-room interior');
+                game.mossyWallTexture = null;
+                if (onDone) onDone();
+                return;
+            }
+
+            const mossyWallTexture = new Image();
+            const path = mossyWallTextureCandidates[index];
+            Logger.wrapImageLoad(mossyWallTexture, 'Wall texture (Mossy_wall.jpg)', path,
+                () => {
+                    game.mossyWallTexture = mossyWallTexture;
                     if (onDone) onDone();
                 },
                 () => {
@@ -199,7 +232,8 @@
             generatedMap = buildKillRoomModeMap(game, {
                 W: W,
                 H: H,
-                wallTexture: game.wallTexture
+                wallTexture: game.wallTexture,
+                interiorWallTexture: game.mossyWallTexture || game.wallTexture
             });
         } else {
             if (typeof buildMazeModeMap !== 'function') {

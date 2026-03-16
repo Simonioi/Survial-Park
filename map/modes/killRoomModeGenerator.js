@@ -13,6 +13,7 @@
         const W = options.W;
         const H = options.H;
         const wallTexture = options.wallTexture || null;
+        const interiorWallTexture = options.interiorWallTexture || wallTexture;
 
         const wallHeight = 100;
         const margin = 35;
@@ -29,18 +30,18 @@
         addWallSegment(walls, game, wallTexture, wallHeight, maxX, maxY, minX, maxY);
         addWallSegment(walls, game, wallTexture, wallHeight, minX, maxY, minX, minY);
 
-        // Interior cover obstacles.
-        addWallSegment(walls, game, wallTexture, wallHeight, W * 0.25, H * 0.28, W * 0.40, H * 0.28);
-        addWallSegment(walls, game, wallTexture, wallHeight, W * 0.25, H * 0.28, W * 0.25, H * 0.42);
+        // Interior cover obstacles use mossy texture.
+        addWallSegment(walls, game, interiorWallTexture, wallHeight, W * 0.25, H * 0.28, W * 0.40, H * 0.28);
+        addWallSegment(walls, game, interiorWallTexture, wallHeight, W * 0.25, H * 0.28, W * 0.25, H * 0.42);
 
-        addWallSegment(walls, game, wallTexture, wallHeight, W * 0.60, H * 0.30, W * 0.75, H * 0.30);
-        addWallSegment(walls, game, wallTexture, wallHeight, W * 0.75, H * 0.30, W * 0.75, H * 0.45);
+        addWallSegment(walls, game, interiorWallTexture, wallHeight, W * 0.60, H * 0.30, W * 0.75, H * 0.30);
+        addWallSegment(walls, game, interiorWallTexture, wallHeight, W * 0.75, H * 0.30, W * 0.75, H * 0.45);
 
-        addWallSegment(walls, game, wallTexture, wallHeight, W * 0.33, H * 0.62, W * 0.47, H * 0.62);
-        addWallSegment(walls, game, wallTexture, wallHeight, W * 0.47, H * 0.62, W * 0.47, H * 0.78);
+        addWallSegment(walls, game, interiorWallTexture, wallHeight, W * 0.33, H * 0.62, W * 0.47, H * 0.62);
+        addWallSegment(walls, game, interiorWallTexture, wallHeight, W * 0.47, H * 0.62, W * 0.47, H * 0.78);
 
-        addWallSegment(walls, game, wallTexture, wallHeight, W * 0.58, H * 0.68, W * 0.74, H * 0.68);
-        addWallSegment(walls, game, wallTexture, wallHeight, W * 0.58, H * 0.54, W * 0.58, H * 0.68);
+        addWallSegment(walls, game, interiorWallTexture, wallHeight, W * 0.58, H * 0.68, W * 0.74, H * 0.68);
+        addWallSegment(walls, game, interiorWallTexture, wallHeight, W * 0.58, H * 0.54, W * 0.58, H * 0.68);
 
         const spawn = { x: W * 0.5, y: H * 0.5 };
         const spawnCells = [];

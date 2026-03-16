@@ -105,6 +105,20 @@ const WaveManager = (function () {
         return pos.x >= b.minX && pos.x <= b.maxX && pos.y >= b.minY && pos.y <= b.maxY;
     }
 
+    function isInsideMazeFloorCell(pos) {
+        if (!pos || !game || !game.mazeGrid || !game.mazeCellSize) return true;
+
+        var ox = game.mazeOffsetX || 0;
+        var oy = game.mazeOffsetY || 0;
+        var cs = game.mazeCellSize;
+        var cx = Math.floor((pos.x - ox) / cs);
+        var cy = Math.floor((pos.y - oy) / cs);
+
+        if (cy < 0 || cy >= game.mazeGrid.length) return false;
+        if (cx < 0 || cx >= game.mazeGrid[cy].length) return false;
+        return game.mazeGrid[cy][cx] === 0;
+    }
+
     function isTooCloseToWall(pos, minWallDistance) {
         if (!pos || !game || !game.walls || game.walls.length === 0) return false;
         for (var i = 0; i < game.walls.length; i++) {
@@ -120,25 +134,49 @@ const WaveManager = (function () {
         var wallBuffer = Math.max(12, (game.mazeCellSize || 24) * 0.45);
         var pos = rawPos;
 
-        if (pos && isInsidePlayableBounds(pos) && !isTooCloseToWall(pos, wallBuffer)) {
+        if (pos && isInsidePlayableBounds(pos) && isInsideMazeFloorCell(pos) && !isTooCloseToWall(pos, wallBuffer)) {
             return pos;
         }
 
         // Retry with sampler a few times when first pick is invalid.
         for (var tries = 0; tries < 10; tries++) {
             var retry = sampleSpawnPosition(minDist);
-            if (retry && isInsidePlayableBounds(retry) && !isTooCloseToWall(retry, wallBuffer)) {
+            if (retry && isInsidePlayableBounds(retry) && isInsideMazeFloorCell(retry) && !isTooCloseToWall(retry, wallBuffer)) {
                 return retry;
+            }
+        }
+
+        // In maze mode, prefer a known spawn cell center to avoid any wall overlap.
+        if (game && game.mazeGrid && game.mapSpawnCells && game.mapSpawnCells.length > 0) {
+            for (var i = 0; i < game.mapSpawnCells.length; i++) {
+                var candidate = game.mapSpawnCells[(i + Math.floor(Math.random() * game.mapSpawnCells.length)) % game.mapSpawnCells.length];
+                if (candidate && isInsideMazeFloorCell(candidate) && !isTooCloseToWall(candidate, wallBuffer)) {
+                    return { x: candidate.x, y: candidate.y };
+                }
             }
         }
 
         // Last-resort fallback: spawn point clamped in playable bounds.
         var b = getPlayableBounds();
         var fallback = game && game.spawnPoint ? game.spawnPoint : { x: (b.minX + b.maxX) * 0.5, y: (b.minY + b.maxY) * 0.5 };
-        return {
+        var safeFallback = {
             x: Math.min(b.maxX, Math.max(b.minX, fallback.x)),
             y: Math.min(b.maxY, Math.max(b.minY, fallback.y))
         };
+
+        if (isInsideMazeFloorCell(safeFallback)) {
+            return safeFallback;
+        }
+
+        // Final maze-safe fallback: player's spawn point if valid, else first spawn cell.
+        if (game && game.spawnPoint && isInsideMazeFloorCell(game.spawnPoint)) {
+            return { x: game.spawnPoint.x, y: game.spawnPoint.y };
+        }
+        if (game && game.mapSpawnCells && game.mapSpawnCells.length > 0) {
+            return { x: game.mapSpawnCells[0].x, y: game.mapSpawnCells[0].y };
+        }
+
+        return safeFallback;
     }
 
     /** Spawn `count` NPCs on random floor cells */
