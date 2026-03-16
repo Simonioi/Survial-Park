@@ -11,7 +11,8 @@ const SaveSystem = {
         PLAYER: 'survivalPark_player',
         STATS: 'survivalPark_stats',
         WAVE: 'survivalPark_wave',
-        MAZE: 'survivalPark_maze'
+        MAZE: 'survivalPark_maze',
+        MAP_MODE: 'survivalPark_map_mode'
     },
 
     /**
@@ -250,7 +251,8 @@ const SaveSystem = {
             flat: flat,
             cellSize: game.mazeCellSize,
             offsetX: game.mazeOffsetX,
-            offsetY: game.mazeOffsetY
+            offsetY: game.mazeOffsetY,
+            mapMode: game.mapMode || 'maze'
         };
         localStorage.setItem(this.KEYS.MAZE, JSON.stringify(data));
     },
@@ -263,6 +265,11 @@ const SaveSystem = {
         if (!raw) return null;
         try {
             var data = JSON.parse(raw);
+            var requestedMode = localStorage.getItem(this.KEYS.MAP_MODE) || 'maze';
+            var savedMode = data.mapMode || 'maze';
+            if (savedMode !== requestedMode) {
+                return null;
+            }
             var grid = [];
             var idx = 0;
             for (var y = 0; y < data.rows; y++) {
@@ -272,7 +279,7 @@ const SaveSystem = {
                 }
                 grid.push(row);
             }
-            return { grid: grid, cols: data.cols, rows: data.rows, cellSize: data.cellSize, offsetX: data.offsetX, offsetY: data.offsetY };
+            return { grid: grid, cols: data.cols, rows: data.rows, cellSize: data.cellSize, offsetX: data.offsetX, offsetY: data.offsetY, mapMode: savedMode };
         } catch (e) {
             return null;
         }

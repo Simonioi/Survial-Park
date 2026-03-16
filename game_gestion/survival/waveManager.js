@@ -29,37 +29,11 @@ const WaveManager = (function () {
         return n;
     }
 
-    /** Find a random floor cell that isn't too close to the player */
-    function randomFloorCell(minPlayerDist) {
-        var grid = game.mazeGrid;
-        var cs = game.mazeCellSize;
-        var ox = game.mazeOffsetX;
-        var oy = game.mazeOffsetY;
-        if (!grid) return null;
-
-        var rows = grid.length;
-        var cols = grid[0].length;
-        var px = game.player.x;
-        var py = game.player.y;
-
-        // Collect all floor cells
-        var cells = [];
-        for (var y = 1; y < rows - 1; y++) {
-            for (var x = 1; x < cols - 1; x++) {
-                if (grid[y][x] === 0) {
-                    var wx = ox + (x + 0.5) * cs;
-                    var wy = oy + (y + 0.5) * cs;
-                    var dx = wx - px;
-                    var dy = wy - py;
-                    if (Math.sqrt(dx * dx + dy * dy) >= minPlayerDist) {
-                        cells.push({ x: wx, y: wy });
-                    }
-                }
-            }
+    function sampleSpawnPosition(minDist) {
+        if (game && typeof game.mapSpawnSampler === 'function') {
+            return game.mapSpawnSampler(minDist);
         }
-
-        if (cells.length === 0) return null;
-        return cells[Math.floor(Math.random() * cells.length)];
+        return game && game.spawnPoint ? { x: game.spawnPoint.x, y: game.spawnPoint.y } : null;
     }
 
     /** Spawn `count` NPCs on random floor cells */
@@ -68,12 +42,13 @@ const WaveManager = (function () {
         var W = game.canvas2D.width;
         var H = game.canvas2D.height;
         var hH = H / 2;
-        var minDist = game.mazeCellSize * 3; // at least 3 cells away from player
+        var baseCellSize = game.mazeCellSize || 30;
+        var minDist = baseCellSize * 3; // at least 3 cells away from player
 
         for (var i = 0; i < count; i++) {
-            var pos = randomFloorCell(minDist);
+            var pos = sampleSpawnPosition(minDist);
             // Fallback: relax distance constraint
-            if (!pos) pos = randomFloorCell(0);
+            if (!pos) pos = sampleSpawnPosition(0);
             var idx = game.npcs.length;
             var npc = new NPC(game, idx, pos ? pos.x : undefined, pos ? pos.y : undefined, W, H, hH);
             game.npcs.push(npc);

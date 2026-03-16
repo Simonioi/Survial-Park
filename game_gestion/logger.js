@@ -61,29 +61,6 @@ const Logger = {
         }
     },
 
-    // Specialized logging methods for common game events
-
-    /**
-     * Log NPC spawn
-     */
-    npcSpawned(index, x, y) {
-        this.info(`✓ Spawned NPC #${index} at (${Math.round(x)}, ${Math.round(y)}) - Visible in 3D and 2D maps`);
-    },
-
-    /**
-     * Log NPC kill
-     */
-    npcKilled(index) {
-        this.debug(`Mob ${index} killed!`);
-    },
-
-    /**
-     * Log NPC cleanup
-     */
-    npcCleanup(removed, remaining) {
-        this.debug(`Cleaned up ${removed} dead NPCs (${remaining} remaining)`);
-    },
-
     /**
      * Log save operation
      */

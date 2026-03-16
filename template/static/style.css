@@ -50,6 +50,32 @@ button:active { background-color: #004080; }
     color: #050505;
 }
 
+.map-mode-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 10px 0 18px;
+    align-items: flex-start;
+}
+
+.map-mode-picker label {
+    color: #dadada;
+    font-weight: bold;
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.map-mode-picker select {
+    background-color: #141414;
+    color: #f0f0f0;
+    border: 1px solid #ac1313;
+    border-radius: 4px;
+    padding: 8px 10px;
+    min-width: 220px;
+    font-size: 14px;
+}
+
 #death-screen {
     position: absolute;
     top: 0; left: 0;

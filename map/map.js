@@ -11,6 +11,7 @@
     const hH = H / 2; // half-width and half-height for centering
     const TSPEED = 2; // turning speed
     const WSPEED = 1.5; // walking speed
+    const MAP_MODE_KEY = 'survivalPark_map_mode';
 
     // Game state
     const game = {
@@ -31,7 +32,11 @@
             kills: 0,
             shots: 0
         },
-        weapon: null
+        weapon: null,
+        mapMode: 'maze',
+        spawnPoint: { x: hW, y: hH },
+        mapSpawnCells: [],
+        mapSpawnSampler: null
     };
 
     // Initialize game
@@ -144,69 +149,83 @@
         tryLoad(0);
     }
     
-    function createWalls(savedMaze) {
-        const wallHeight = 100;
-        const cellSize = savedMaze ? savedMaze.cellSize : 42;
-        const cols = savedMaze ? savedMaze.cols : 41;
-        const rows = savedMaze ? savedMaze.rows : 41;
-        const loopChance = 0.08;
-        const spawnSafeRadius = 1;   // cells of clearance around spawn
+    function getMapModeFromInput(modeFromMenu) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const fromUrl = urlParams.get('mapMode');
+        const fromParam = modeFromMenu === 'kill-room' || modeFromMenu === 'maze' ? modeFromMenu : null;
+        const normalizedUrl = fromUrl === 'kill-room' || fromUrl === 'maze' ? fromUrl : null;
+        const fromStorage = localStorage.getItem(MAP_MODE_KEY);
+        const chosen = fromParam || normalizedUrl || (fromStorage === 'kill-room' || fromStorage === 'maze' ? fromStorage : 'maze');
+        localStorage.setItem(MAP_MODE_KEY, chosen);
+        return chosen;
+    }
+
+    function applyGeneratedMap(mapData) {
+        if (!mapData) {
+            Logger.error('Map generation returned no data');
+            return null;
+        }
 
         game.walls.length = 0;
+        for (let i = 0; i < mapData.walls.length; i++) {
+            game.walls.push(mapData.walls[i]);
+        }
 
-        let grid;
-        let offsetX, offsetY;
+        game.spawnPoint = mapData.spawn;
+        game.mazeGrid = mapData.mazeGrid;
+        game.mazeCellSize = mapData.mazeCellSize;
+        game.mazeOffsetX = mapData.mazeOffsetX;
+        game.mazeOffsetY = mapData.mazeOffsetY;
+        game.mapSpawnCells = mapData.spawnCells || [];
+        game.mapSpawnSampler = createMapSpawnSampler(
+            game,
+            game.mapSpawnCells,
+            mapData.minSpawnDistance || 0,
+            game.spawnPoint
+        );
 
-        if (savedMaze) {
-            grid = savedMaze.grid;
-            offsetX = savedMaze.offsetX;
-            offsetY = savedMaze.offsetY;
+        return mapData.spawn;
+    }
+
+    function buildMapByMode(mode, savedMaze) {
+        game.mapMode = mode;
+
+        let generatedMap;
+        if (mode === 'kill-room') {
+            if (typeof buildKillRoomModeMap !== 'function') {
+                Logger.error('Kill room generator not loaded');
+                return null;
+            }
+            generatedMap = buildKillRoomModeMap(game, {
+                W: W,
+                H: H,
+                wallTexture: game.wallTexture
+            });
         } else {
-            const startCellX = 1 + 2 * MazeGen.randomInt(Math.floor((cols - 1) / 2));
-            const startCellY = 1 + 2 * MazeGen.randomInt(Math.floor((rows - 1) / 2));
-            grid = MazeGen.generateGrid(cols, rows, startCellX, startCellY, loopChance);
-            offsetX = Math.floor((W - cols * cellSize) / 2);
-            offsetY = Math.floor((H - rows * cellSize) / 2);
+            if (typeof buildMazeModeMap !== 'function') {
+                Logger.error('Maze generator not loaded');
+                return null;
+            }
+            generatedMap = buildMazeModeMap(game, {
+                W: W,
+                H: H,
+                savedMaze: savedMaze,
+                wallTexture: game.wallTexture
+            });
         }
 
-        // Convert grid to wall segments.
-        const wallSegments = MazeGen.gridToWallSegments(grid, cellSize, offsetX, offsetY);
-
-        for (let i = 0; i < wallSegments.length; i++) {
-            game.walls.push(new Wall(
-                game,
-                wallSegments[i],
-                wallHeight,
-                '#8B7355',
-                game.wallTexture
-            ));
-        }
-
-        // 3) Find a safe spawn position (guaranteed not inside a wall).
-        const safe = MazeGen.findSafeSpawn(grid, cols, rows, spawnSafeRadius);
-        const spawn = {
-            x: offsetX + (safe.cellX + 0.5) * cellSize,
-            y: offsetY + (safe.cellY + 0.5) * cellSize
-        };
-
-        // Store grid info for external use (NPC spawning, dev tools, etc.)
-        game.mazeGrid = grid;
-        game.mazeCellSize = cellSize;
-        game.mazeOffsetX = offsetX;
-        game.mazeOffsetY = offsetY;
-        game.spawnPoint = spawn;
-
-        Logger.info(`✓ Created ${game.walls.length} procedural walls (${cols}×${rows} maze)`);
-        return spawn;
+        return applyGeneratedMap(generatedMap);
     }
     
-    function startGame() {
+    function startGame(modeFromMenu) {
         // Create player (from player.js)
         game.player = new Player(game, W, H, hW, hH, TSPEED, WSPEED);
 
+        const mapMode = getMapModeFromInput(modeFromMenu);
+
         // Try to restore a saved maze, otherwise generate a new one
-        const savedMaze = window.SaveSystem ? SaveSystem.loadMaze() : null;
-        const spawn = createWalls(savedMaze);
+        const savedMaze = (window.SaveSystem && mapMode === 'maze') ? SaveSystem.loadMaze() : null;
+        const spawn = buildMapByMode(mapMode, savedMaze);
 
         if (savedMaze) {
             // Restore player position, score, NPCs, wave from save
@@ -239,19 +258,20 @@
             Logger.gameState('Dev Mode active - Use spawn button to add NPCs');
         } else {
             // Normal mode: survival wave spawning
-            if (typeof WaveManager !== 'undefined') {
-                WaveManager.init(game);
-                if (savedMaze) {
-                    // Restore NPCs and wave from save
-                    if (window.SaveSystem) {
-                        SaveSystem.loadNPCs(game, W, H, hH);
-                        SaveSystem.loadWave();
-                    }
-                }
-                Logger.gameState('Survival mode — wave spawning active');
-            } else {
-                loadNPCsFromLocalStorage();
+            if (typeof WaveManager === 'undefined') {
+                Logger.error('WaveManager is required but not loaded');
+                return;
             }
+
+            WaveManager.init(game);
+            if (savedMaze) {
+                // Restore NPCs and wave from save
+                if (window.SaveSystem) {
+                    SaveSystem.loadNPCs(game, W, H, hH);
+                    SaveSystem.loadWave();
+                }
+            }
+            Logger.gameState('Survival mode — wave spawning active (' + mapMode + ')');
         }
 
         // Auto-save when leaving the page
@@ -283,45 +303,6 @@
         // Start game loop (from gameLoop.js)
         const gameLoop = createGameLoop(game, W, H);
         gameLoop();
-    }
-
-    function loadNPCsFromLocalStorage() {
-        // Use SaveSystem if available, otherwise fallback to direct load
-        if (window.SaveSystem) {
-            SaveSystem.loadGame(game, W, H, hH);
-        } else {
-            Logger.warn('SaveSystem not loaded, falling back to direct load');
-            const npcData = localStorage.getItem('survivalPark_npcs');
-            if (!npcData) {
-                Logger.storage.missing('NPCs');
-                return;
-            }
-            
-            try {
-                const npcs = JSON.parse(npcData);
-                
-                // Clear existing NPCs
-                game.npcs.length = 0;
-                if (game.map2DRenderer && game.map2DRenderer.npc2D) {
-                    game.map2DRenderer.npc2D.npcs.length = 0;
-                }
-                
-                // Spawn NPCs from stored data
-                npcs.forEach((npcInfo, index) => {
-                    const npc = new NPC(game, index, npcInfo.x, npcInfo.y, W, H, hH);
-                    game.npcs.push(npc);
-                    
-                    // Register with 2D map renderer
-                    if (game.map2DRenderer) {
-                        game.map2DRenderer.addNPC(npc);
-                    }
-                });
-                
-                Logger.npcs.loaded(npcs.length);
-            } catch (error) {
-                Logger.storage.failed('load', 'NPCs', error);
-            }
-        }
     }
 
     // Start when DOM is ready

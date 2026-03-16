@@ -94,66 +94,28 @@ class DevMode {
      * Sync game state to localStorage using SaveSystem
      */
     syncToLocalStorage() {
-        if (window.SaveSystem) {
-            SaveSystem.saveGame(this.game);
-        } else {
-            Logger.warn('SaveSystem not loaded, falling back to direct save');
-            const npcData = this.game.npcs.map(npc => ({
-                x: npc.x,
-                y: npc.y
-            }));
-            localStorage.setItem('survivalPark_npcs', JSON.stringify(npcData));
+        if (!window.SaveSystem) {
+            Logger.error('SaveSystem is required in Dev Mode but not loaded');
+            return;
         }
+
+        SaveSystem.saveGame(this.game);
     }
 
     /**
      * Load game state from localStorage using SaveSystem
      */
     loadFromLocalStorage() {
-        if (window.SaveSystem) {
-            const W = this.game.canvas2D.width;
-            const H = this.game.canvas2D.height;
-            const hH = H / 2;
-            SaveSystem.loadGame(this.game, W, H, hH);
-            this.updateNPCCount();
-        } else {
-            Logger.warn('SaveSystem not loaded, falling back to direct load');
-            const npcData = localStorage.getItem('survivalPark_npcs');
-            if (!npcData) {
-                Logger.storage.missing('NPCs to load');
-                return;
-            }
-            
-            try {
-                const npcs = JSON.parse(npcData);
-                
-                // Clear existing NPCs
-                this.game.npcs.length = 0;
-                if (this.game.map2DRenderer && this.game.map2DRenderer.npc2D) {
-                    this.game.map2DRenderer.npc2D.npcs.length = 0;
-                }
-                
-                // Spawn NPCs from stored data
-                const W = this.game.canvas2D.width;
-                const H = this.game.canvas2D.height;
-                const hH = H / 2;
-                
-                npcs.forEach((npcInfo, index) => {
-                    const npc = new NPC(this.game, index, npcInfo.x, npcInfo.y, W, H, hH);
-                    this.game.npcs.push(npc);
-                    
-                    // Register with 2D map renderer
-                    if (this.game.map2DRenderer) {
-                        this.game.map2DRenderer.addNPC(npc);
-                    }
-                });
-                
-                Logger.npcs.loaded(npcs.length);
-                this.updateNPCCount();
-            } catch (error) {
-                Logger.storage.failed('load', 'NPCs', error);
-            }
+        if (!window.SaveSystem) {
+            Logger.error('SaveSystem is required in Dev Mode but not loaded');
+            return;
         }
+
+        const W = this.game.canvas2D.width;
+        const H = this.game.canvas2D.height;
+        const hH = H / 2;
+        SaveSystem.loadGame(this.game, W, H, hH);
+        this.updateNPCCount();
     }
 
     /**

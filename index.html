@@ -12,6 +12,13 @@
     <div id="main-menu">
         <h1>SURVIVAL PARK</h1>
         <button class="menu-btn" onclick="lancerMenu()">▶ PLAY</button>
+        <div class="map-mode-picker">
+            <label for="map-mode">Map mode</label>
+            <select id="map-mode">
+                <option value="maze">Maze</option>
+                <option value="kill-room">Kill Room</option>
+            </select>
+        </div>
         <button class="menu-btn" onclick="alert('Options bientôt disponibles !')">⚙ OPTIONS</button>
     </div>
 
@@ -36,7 +43,7 @@
             </ul>
             <div class="button-group">
                 <button onclick="if(window.resetGame) resetGame(); window.location.href='index.html'" style="background-color: #8b0000;">Main Menu</button>
-                <button onclick="if(window.SaveSystem && window.game) SaveSystem.saveGame(window.game); window.location.href='Dev mode/devMode.html'" style="background-color: #cc6600;">🛠️ Dev Mode</button>
+                <button onclick="if(window.SaveSystem && window.game) SaveSystem.saveGame(window.game); var currentMode=(window.game && window.game.mapMode)?window.game.mapMode:(localStorage.getItem('survivalPark_map_mode') || 'maze'); window.location.href='Dev mode/devMode.html?mapMode=' + encodeURIComponent(currentMode);" style="background-color: #cc6600;">🛠️ Dev Mode</button>
             </div>
         </div>
     </div>
@@ -52,7 +59,11 @@
     <script src="entity/player.js"></script>
     <script src="map/modules/floor.js"></script>
     <script src="map/modules/wall.js"></script>
-    <script src="map/maze_gen.js"></script> <script src="entity/npc.js"></script>
+    <script src="map/maze_gen.js"></script>
+    <script src="game_gestion/survival/spawnSampler.js"></script>
+    <script src="map/modes/mazeModeGenerator.js"></script>
+    <script src="map/modes/killRoomModeGenerator.js"></script>
+    <script src="entity/npc.js"></script>
     <script src="map/2D map/camera2D.js"></script>
     <script src="map/2D map/npc2D.js"></script>
     <script src="map/2D map/map2DRenderer.js"></script>
