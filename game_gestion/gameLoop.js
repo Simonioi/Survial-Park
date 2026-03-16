@@ -75,6 +75,12 @@ function createGameLoop(game, W, H) {
         // Show death screen and halt loop when player dies.
         if (game.player.isDead) {
             cancelAnimationFrame(game.animationId);
+            
+            // Save game stats for scoreboard
+            const kills = (game.score && game.score.kills) ? game.score.kills : 0;
+            const wave = (typeof WaveManager !== 'undefined') ? WaveManager.getWave() : 1;
+            window.lastGameStats = { kills: kills, wave: wave };
+            
             const deathScreen = document.getElementById('death-screen');
             if (deathScreen) deathScreen.style.display = 'flex';
             return;
