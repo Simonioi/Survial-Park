@@ -19,6 +19,7 @@
                 <option value="kill-room">Kill Room</option>
             </select>
         </div>
+        <button class="menu-btn" onclick="ScoreboardSystem.showLeaderboard()"> SCOREBOARD</button>
         <button class="menu-btn" onclick="alert('Options bientôt disponibles !')">⚙ OPTIONS</button>
     </div>
 
@@ -50,7 +51,53 @@
 
     <div id="death-screen" style="display: none;">
         <h1>YOU DIED</h1>
+        <button class="menu-btn" onclick="ScoreboardSystem.showNameEntryScreen({kills: window.lastGameStats?.kills || 0, wave: window.lastGameStats?.wave || 1})">SAVE SCORE</button>
         <button class="menu-btn" onclick="window.location.href='index.html'">Return to Main Menu</button>
+    </div>
+
+    <div id="name-entry-screen" style="display: none;">
+        <div class="modal-content">
+            <h1>YOUR SCORE</h1>
+            <div class="score-stats">
+                <div class="stat">
+                    <span class="stat-label">Kills:</span>
+                    <span class="stat-value" id="final-kills">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Waves:</span>
+                    <span class="stat-value" id="final-wave">1</span>
+                </div>
+            </div>
+            <div class="name-input-group">
+                <label for="player-name-input">Enter your name (MAX 3 letters):</label>
+                <input type="text" id="player-name-input" maxlength="3" placeholder="ABC" style="text-transform: uppercase;">
+            </div>
+            <div class="button-group" style="justify-content: center; gap: 10px;">
+                <button class="menu-btn" onclick="ScoreboardSystem.submitNameAndSaveScore()" style="width: 200px;">SUBMIT</button>
+                <button class="menu-btn" onclick="ScoreboardSystem.closeNameEntry()" style="width: 200px; background-color: #333;">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="leaderboard-screen" style="display: none;">
+        <div class="modal-content">
+            <h1>TOP 10 SCORES</h1>
+            <table id="leaderboard-table" class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Name</th>
+                        <th>Kills</th>
+                        <th>Waves</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+            <div class="button-group" style="justify-content: center; gap: 10px; margin-top: 20px;">
+                <button class="menu-btn" onclick="ScoreboardSystem.hideLeaderboard(); window.location.href='index.html'">Back to Menu</button>
+            </div>
+        </div>
     </div>
 
     <script src="game_gestion/logger.js"></script>
@@ -73,6 +120,7 @@
     <script src="game_gestion/survival/waveManager.js"></script>
     <script src="game_gestion/gameLoop.js"></script>
     <script src="map/map.js"></script>
+    <script src="game_gestion/scoreboard.js"></script>
 
     <script src="game_gestion/menu.js"></script>
 </body>
