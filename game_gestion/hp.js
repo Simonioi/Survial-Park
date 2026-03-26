@@ -1,4 +1,4 @@
-// Gestionnaire de PV — Survival Park
+// HP manager - Survival Park
 
 const entities = new Map();
 let nextId = 1;

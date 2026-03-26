@@ -199,22 +199,22 @@ class NPC {
 
         const cam = this.player;
 
-        // Vecteur du joueur vers le NPC dans le monde
+        // Vector from the player to the NPC in world space
         const dx = this.x - cam.x;
         const dy = this.y - cam.y;
         const dis = Math.sqrt(dx * dx + dy * dy);
 
-        // Trop loin -> pas affiché
+        // Too far away -> do not render
         const maxRenderDistance = 600;
         if (dis > maxRenderDistance || dis < 2) {
             return null;
         }
 
-        // Angle absolu vers le NPC et angle absolu de la caméra
+        // Absolute angle to the NPC and absolute camera angle
         const rayAngle = Math.atan2(dx, -dy);
         const camAngle = helpers.radians(cam.d);
 
-        // Différence d'angle (dans [-π, π])
+        // Angle difference (in [-pi, pi])
         let angleDiff = rayAngle - camAngle;
         while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
         while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
@@ -229,10 +229,10 @@ class NPC {
 
         const projPlane = (this.W * 0.5) / Math.tan(halfFovRad);
 
-        // Position X: même formule linéaire que le raycaster des murs
+        // X position: same linear formula as the wall raycaster
         const spriteScreenX = this.W * (0.5 + angleDiff / (2 * halfFovRad));
 
-        // Distance corrigée (fish-eye) comme pour les murs
+        // Fish-eye corrected distance, same as for walls
         const correctedDistance = Math.max(0.1, dis * Math.cos(angleDiff));
         const spriteHeight = (this.size * projPlane) / correctedDistance;
         if (spriteHeight <= 2) {
@@ -260,15 +260,15 @@ class NPC {
     }
 }
 
-// Deuxième monstre : Sword Rex
+// Second monster: Sword Rex
 class SwordRex extends NPC {
     constructor(game, i, x, y, W, H, hH) {
         super(game, i, x, y, W, H, hH);
-        // Spécificités Sword Rex
-        this.hpId = hp.createEntity(`SwordRex_${i}`, 5); // 5 de vie
-        this.attackDamage = 20; // 20 de dégâts
-        this.color = '#00BFFF'; // Couleur différente si fallback cercle
-        this.videoKey = 'SwordRex'; // Pour le rendu vidéo
-        this.moveSpeed = 1.5; // plus rapide que le monstre de base
+        // Sword Rex specific settings
+        this.hpId = hp.createEntity(`SwordRex_${i}`, 5); // 5 HP
+        this.attackDamage = 20; // 20 damage
+        this.color = '#00BFFF'; // Different color if circle fallback is used
+        this.videoKey = 'SwordRex'; // Used for video rendering
+        this.moveSpeed = 1.5; // Faster than the base monster
     }
 }

@@ -6,7 +6,7 @@ function readSelectedMapMode() {
     return modeSelect.value === 'kill-room' ? 'kill-room' : 'maze';
 }
 
-// Fonction appelée quand le joueur clique sur "JOUER"
+// Function called when the player clicks "PLAY"
 function lancerMenu(mode) {
     const selectedMode = mode || readSelectedMapMode();
     localStorage.setItem(MENU_MAP_MODE_KEY, selectedMode);
@@ -21,9 +21,9 @@ function lancerMenu(mode) {
     }
 }
 
-// L'astuce pour zapper le menu quand on vient du Dev Mode
+// Trick to skip the menu when coming from Dev Mode
 window.addEventListener('DOMContentLoaded', () => {
-    // On regarde l'URL de la page
+    // Read the page URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const modeSelect = document.getElementById('map-mode');
     const storedMode = localStorage.getItem(MENU_MAP_MODE_KEY);
@@ -31,23 +31,23 @@ window.addEventListener('DOMContentLoaded', () => {
         modeSelect.value = storedMode;
     }
     
-    // Si l'URL contient "?skipMenu=true"
+    // If the URL contains "?skipMenu=true"
     if (urlParams.get('skipMenu') === 'true') {
         const urlMode = urlParams.get('mapMode');
         const fallbackMode = localStorage.getItem(MENU_MAP_MODE_KEY) || 'maze';
         const autoMode = (urlMode === 'kill-room' || urlMode === 'maze') ? urlMode : fallbackMode;
         localStorage.setItem(MENU_MAP_MODE_KEY, autoMode);
         
-        // 1. On cache l'écran noir du menu tout de suite
+        // 1. Hide the menu black screen immediately
         document.getElementById('main-menu').style.display = 'none';
         document.getElementById('game-ui').style.display = 'block';
         
-        // 2. On patiente un instant que map.js charge les images, puis on lance !
+        // 2. Wait briefly for map.js to load assets, then start
         let attenteJeu = setInterval(() => {
             if (typeof window.demarrerLeJeu === "function") {
-                window.demarrerLeJeu(autoMode); // Démarrage automatique
-                clearInterval(attenteJeu); // On arrête de chercher
+                window.demarrerLeJeu(autoMode); // Automatic start
+                clearInterval(attenteJeu); // Stop polling
             }
-        }, 100); // Vérifie toutes les 100 millisecondes
+        }, 100); // Check every 100 milliseconds
     }
 });

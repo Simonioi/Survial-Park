@@ -73,7 +73,7 @@
         let pendingAssets = 3;
         let hasStarted = false;
 
-        // --- MODIF POUR LE MENU ---
+        // --- MENU INTEGRATION CHANGE ---
         const isDevMode = window.location.href.includes('devMode');
 
         const onAssetReady = () => {
@@ -81,7 +81,7 @@
             if (!hasStarted && pendingAssets <= 0) {
                 hasStarted = true;
                 
-                // --- CONNEXION AU MENU OU LANCEMENT AUTO EN DEV MODE ---
+                // --- MENU HOOK OR AUTO-START IN DEV MODE ---
                 if (isDevMode) {
                     startGame(); 
                 } else {

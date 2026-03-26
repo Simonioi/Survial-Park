@@ -57,7 +57,7 @@ class DevMode {
     }
 
     /**
-     * Spawn un Sword Rex à une position aléatoire
+     * Spawn a Sword Rex at a random position
      */
     spawnSwordRex() {
         const W = this.game.canvas2D.width;

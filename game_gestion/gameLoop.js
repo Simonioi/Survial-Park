@@ -4,7 +4,7 @@
  */
 function createGameLoop(game, W, H) {
     // Load NPC video for 3D rendering with animation
-    // Gestion multi-monstres : vidéos différentes
+    // Multi-monster support: separate videos per type
     const npcVideos = {
         default: document.createElement('video'),
         SwordRex: document.createElement('video')
@@ -16,9 +16,9 @@ function createGameLoop(game, W, H) {
     const npcVideoSpeed = 2.0;
     const npcVideoSpeeds = {
         default: npcVideoSpeed,
-        SwordRex: 1.0 // SwordRex en x1 (test)
+        SwordRex: 1.0 // SwordRex at 1x speed (test)
     };
-    // Config vidéos
+    // Video configuration
     npcVideos.default.loop = true;
     npcVideos.default.muted = true;
     npcVideos.default.playsInline = true;
@@ -28,7 +28,7 @@ function createGameLoop(game, W, H) {
     npcVideos.SwordRex.playsInline = true;
     npcVideos.SwordRex.playbackRate = npcVideoSpeeds.SwordRex;
 
-    // Vidéos à charger
+    // Videos to load
     const npcVideoCandidates = {
         default: [
             'Ressource/Video_de_Monstre_Sans_Fond.mp4',
@@ -63,7 +63,7 @@ function createGameLoop(game, W, H) {
     tryLoadNpcVideo('default', 0);
     tryLoadNpcVideo('SwordRex', 0);
 
-    // Son des monstres normaux (clickers) — une seule instance partagée pour éviter la superposition
+    // Sound for normal monsters (clickers) - one shared instance to avoid overlap
     const clickerSoundCandidates = [
         'Ressource/Clickers_sound.mp3',
         '../Ressource/Clickers_sound.mp3'
@@ -86,7 +86,7 @@ function createGameLoop(game, W, H) {
     }
     tryLoadClickerSound(0);
 
-    // Cache du wrapper de la mini-carte 2D pour pouvoir couper son rendu quand elle est cachée
+    // Cache the 2D minimap wrapper to disable rendering when hidden
     const map2DWrapper = document.getElementById('map2d-wrapper');
     
     function gameLoop() {
@@ -132,7 +132,7 @@ function createGameLoop(game, W, H) {
             }
         }
         
-        // Render 2D map uniquement si son wrapper est visible
+        // Render 2D map only if its wrapper is visible
         if (game.map2DRenderer && (!map2DWrapper || map2DWrapper.style.display !== 'none')) {
             game.map2DRenderer.render();
         }
@@ -173,7 +173,7 @@ function createGameLoop(game, W, H) {
             updateWeaponSystem(game, npcRenderData, now);
         }
 
-        // Contrôle son clicker : joue si au moins un monstre normal est vivant, sinon pause
+        // Clicker audio control: play if at least one normal monster is alive, otherwise pause
         if (clickerAudioLoaded) {
             const anyNormalNpc = game.npcs.some(npc => npc && !npc.isDead && (npc.videoKey || 'default') === 'default');
             if (anyNormalNpc && clickerAudio.paused) {
@@ -183,7 +183,7 @@ function createGameLoop(game, W, H) {
             }
         }
 
-        // Contrôle lecture vidéo pour chaque type de monstre
+        // Video playback control for each monster type
         for (const key of Object.keys(npcVideos)) {
             if (npcVideoLoaded[key]) {
                 let anyMoving = false;
@@ -204,7 +204,7 @@ function createGameLoop(game, W, H) {
         // Render NPCs with per-column wall clipping so partial visibility works.
         npcRenderData.sort((a, b) => b.distance - a.distance);
         for (let data of npcRenderData) {
-            // Choix de la vidéo selon le type de monstre
+            // Choose video based on monster type
             const key = (data.npc && data.npc.videoKey) ? data.npc.videoKey : 'default';
 
             const imageSize = data.scale * 2;

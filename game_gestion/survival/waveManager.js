@@ -203,7 +203,7 @@ const WaveManager = (function () {
             }
         }
 
-        // Sword Rex progressif: vague 3 => 1, vague 6 => 2, vague 9 => 3, etc.
+        // Progressive Sword Rex count: wave 3 => 1, wave 6 => 2, wave 9 => 3, etc.
         if (swordRexCount > 0 && typeof SwordRex !== 'undefined') {
             for (var r = 0; r < swordRexCount; r++) {
                 var rexPos = sampleSpawnPosition(minDist);
