@@ -27,6 +27,3 @@ Q : left
 D : right
 spacebar/mouseclick : shoot
 escape : unlock the mouse and click on icons.
-
-# Dev mode :
-we added a dev mode option, with the 3D view, and a top 2D view. this mode is used to test and check the spawn and map generation. it as a teleport on click option, a spawn button, and clear all entities button.
