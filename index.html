@@ -44,7 +44,6 @@
             </ul>
             <div class="button-group">
                 <button onclick="if(window.resetGame) resetGame(); window.location.href='index.html'" style="background-color: #8b0000;">Main Menu</button>
-                <button onclick="if(window.SaveSystem && window.game) SaveSystem.saveGame(window.game); var currentMode=(window.game && window.game.mapMode)?window.game.mapMode:(localStorage.getItem('survivalPark_map_mode') || 'maze'); window.location.href='Dev mode/devMode.html?mapMode=' + encodeURIComponent(currentMode);" style="background-color: #cc6600;">🛠️ Dev Mode</button>
             </div>
         </div>
     </div>
